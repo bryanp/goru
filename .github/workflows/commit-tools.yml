@@ -1,0 +1,64 @@
+name: commit
+
+on:
+  pull_request:
+    types:
+      - closed
+  push:
+  repository_dispatch:
+
+jobs:
+  update-changelogs:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Checkout commit tools
+      uses: actions/checkout@v2
+      with:
+        repository: metabahn/commit
+        path: .commit/tools
+
+    - name: Setup ruby
+      uses: actions/setup-ruby@v1
+      with:
+        ruby-version: '2.7'
+
+    - name: Update changelogs
+      run: ./.commit/tools/bin/update-changelogs
+      env:
+        COMMIT__GIT_EMAIL: "bot@metabahn.com"
+        COMMIT__GIT_NAME: "Metabahn Bot"
+        COMMIT__GIT_TOKEN: ${{secrets.COMMIT_TOKEN}}
+        COMMIT__GIT_USER: "metabahn-bot"
+
+  update-templates:
+    needs:
+      - update-changelogs
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Checkout commit tools
+      uses: actions/checkout@v2
+      with:
+        repository: metabahn/commit
+        path: .commit/tools
+
+    - name: Setup ruby
+      uses: actions/setup-ruby@v1
+      with:
+        ruby-version: '2.7'
+
+    - name: Update templates
+      run: ./.commit/tools/bin/update-templates
+      env:
+        COMMIT__GIT_EMAIL: "bot@metabahn.com"
+        COMMIT__GIT_NAME: "Metabahn Bot"
+        COMMIT__GIT_TOKEN: ${{secrets.COMMIT_TOKEN}}
+        COMMIT__GIT_USER: "metabahn-bot"

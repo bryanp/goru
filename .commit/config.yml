@@ -1,0 +1,54 @@
+commit:
+  changelogs:
+    - label: "commit.changelog"
+      destination: "./CHANGELOG.md"
+
+  changetypes:
+    - label: "commit.type.add"
+      name: "add"
+    - label: "commit.type.chg"
+      name: "chg"
+    - label: "commit.type.fix"
+      name: "fix"
+    - label: "commit.type.dep"
+      name: "dep"
+
+  includes:
+    - ruby-gem
+    - ruby-rspec
+    - ruby-standard
+    - oss
+    - git
+
+  externals:
+    - repo: "metabahn/commit-templates"
+      private: true
+
+license:
+  slug: mpl
+  name: "MPL-2.0"
+
+project:
+  slug: "goru"
+  description: "Concurrent routines for Ruby."
+
+  author:
+    name: "Bryan Powell"
+    email: "bryan@metabahn.com"
+    homepage: "https://github.com/metabahn/goru/"
+
+  copyright:
+    attribution: "Metabahn"
+    year: 2022
+
+ruby:
+  gem:
+    namespace: "Goru"
+    extra: |-2
+        spec.files = Dir["CHANGELOG.md", "README.md", "LICENSE", "lib/**/*"]
+        spec.require_path = "lib"
+
+        spec.add_dependency "core-extension", "~> 0.4"
+        spec.add_dependency "core-global", "~> 0.1"
+        spec.add_dependency "nio4r", "~> 2.5"
+        spec.add_dependency "timers", "~> 4.3"
