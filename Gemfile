@@ -9,5 +9,8 @@ group :development do
 end
 
 group :test do
+  gem "get_process_mem"
+  gem "http"
+  gem "llhttp"
   gem "rspec"
 end
