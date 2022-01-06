@@ -1,0 +1,6 @@
+.commit/tools
+*.bundle
+*.gem
+Gemfile.lock
+.ruby-version
+
