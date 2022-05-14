@@ -36,57 +36,53 @@ module Goru
           call_routine(routine)
         end
 
-        # TODO: Remove the monitor from the selector.
-        #
         cleanup_finished_routines
 
-        begin
-          if (routine = @queue.pop(true))
-            adopt_routine(routine)
-          end
-        rescue ThreadError
-          interval = @timers.wait_interval
-
-          if interval.nil?
-            if @routines.empty?
-              if @selector.empty?
-                @status = :looking
-                @scheduler.signal(self)
-                if (routine = @queue.pop)
-                  adopt_routine(routine)
-                end
-              else
-                # TODO: The issue doing this is that this reactor won't grab new routines. Will calling `@selector.wakeup`
-                # from the scheduler when a routine is added to the queue resolve this?
-                #
-                @selector.select do |monitor|
-                  monitor.value.call
-                end
-              end
-            else
-              @selector.select(0) do |monitor|
-                monitor.value.call
-              end
-            end
-          elsif interval > 0
-            if @selector.empty?
-              Timers::Wait.for(interval) do |remaining|
-                if (routine = @queue.pop_with_timeout(remaining))
-                  adopt_routine(routine)
-                  break
-                end
-              rescue ThreadError
-                # nothing to do
-              end
-            else
-              @selector.select(interval) do |monitor|
-                monitor.value.call
-              end
-            end
-          end
-
-          @timers.fire
+        if @queue.any? && (routine = @queue.pop(true))
+          adopt_routine(routine)
         end
+
+        interval = @timers.wait_interval
+
+        if interval.nil?
+          if @routines.empty?
+            if @selector.empty?
+              @status = :looking
+              @scheduler.signal(self)
+              if (routine = @queue.pop)
+                adopt_routine(routine)
+              end
+            else
+              # TODO: The issue doing this is that this reactor won't grab new routines. Will calling `@selector.wakeup`
+              # from the scheduler when a routine is added to the queue resolve this?
+              #
+              @selector.select do |monitor|
+                monitor.value.call
+              end
+            end
+          else
+            @selector.select(0) do |monitor|
+              monitor.value.call
+            end
+          end
+        elsif interval > 0
+          if @selector.empty?
+            Timers::Wait.for(interval) do |remaining|
+              if (routine = @queue.pop_with_timeout(remaining))
+                adopt_routine(routine)
+                break
+              end
+            rescue ThreadError
+              # nothing to do
+            end
+          else
+            @selector.select(interval) do |monitor|
+              monitor.value.call
+            end
+          end
+        end
+
+        @timers.fire
       end
     ensure
       @selector.close
@@ -97,10 +93,8 @@ module Goru
     #
     def stop
       @stopped = true
-
-      unless @selector.closed?
-        @selector.wakeup
-      end
+      @selector.wakeup
+    rescue IOError
     end
 
     # [public]

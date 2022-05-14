@@ -57,5 +57,11 @@ module Goru
         @received.broadcast
       end
     end
+
+    # [public]
+    #
+    def any?
+      !@queue.empty?
+    end
   end
 end
