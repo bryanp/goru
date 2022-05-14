@@ -51,6 +51,7 @@ module Goru
           @stopping
         end
       end
+    rescue Interrupt
     ensure
       stop
     end
