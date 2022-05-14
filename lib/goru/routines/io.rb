@@ -31,7 +31,11 @@ module Goru
         result = @io.read_nonblock(bytes, exception: false)
 
         case result
-        when :wait_readable, nil
+        when nil
+          @status = :finished
+
+          nil
+        when :wait_readable
           # nothing to do
         else
           result

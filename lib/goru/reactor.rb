@@ -146,7 +146,13 @@ module Goru
 
     private def cleanup_finished_routines
       until @finished.empty?
-        @routines.delete(@finished.pop)
+        routine = @finished.pop
+        @routines.delete(routine)
+
+        case routine
+        when Routines::IO
+          @selector.deregister(routine.io)
+        end
       end
     end
   end
