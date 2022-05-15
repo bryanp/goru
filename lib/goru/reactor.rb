@@ -18,8 +18,8 @@ module Goru
       @finished = []
       @timers = Timers::Group.new
       @selector = NIO::Selector.new
-      @status = nil
       @stopped = false
+      @status = nil
     end
 
     # [public]
@@ -38,47 +38,33 @@ module Goru
 
         cleanup_finished_routines
 
-        if @queue.any? && (routine = @queue.pop(true))
-          adopt_routine(routine)
+        begin
+          adopt_routine(@queue.pop(true))
+        rescue ThreadError
         end
 
         interval = @timers.wait_interval
 
         if interval.nil?
-          if @routines.empty?
-            if @selector.empty?
-              @status = :looking
-              @scheduler.signal(self)
-              if (routine = @queue.pop)
-                adopt_routine(routine)
-              end
-            else
-              # TODO: The issue doing this is that this reactor won't grab new routines. Will calling `@selector.wakeup`
-              # from the scheduler when a routine is added to the queue resolve this?
-              #
-              @selector.select do |monitor|
-                monitor.value.call
-              end
-            end
+          if @routines.empty? && @selector.empty? && @queue.empty?
+            @status = :looking
+            @scheduler.signal(self)
           else
+            @status = :running
+          end
+
+          if @routines.empty? && @queue.empty?
+            @selector.select do |monitor|
+              call_routine(monitor.value)
+            end
+          elsif !@selector.empty?
             @selector.select(0) do |monitor|
-              monitor.value.call
+              call_routine(monitor.value)
             end
           end
         elsif interval > 0
-          if @selector.empty?
-            Timers::Wait.for(interval) do |remaining|
-              if (routine = @queue.pop_with_timeout(remaining))
-                adopt_routine(routine)
-                break
-              end
-            rescue ThreadError
-              # nothing to do
-            end
-          else
-            @selector.select(interval) do |monitor|
-              monitor.value.call
-            end
+          @selector.select(interval) do |monitor|
+            call_routine(monitor.value)
           end
         end
 
@@ -87,6 +73,12 @@ module Goru
     ensure
       @selector.close
       @status = :finished
+    end
+
+    # [public]
+    #
+    def signal
+      @selector.wakeup
     end
 
     # [public]
@@ -110,18 +102,7 @@ module Goru
 
       case routine
       when Routines::IO
-        monitor = @selector.register(routine.io, routine.intent)
-
-        monitor.value = proc {
-          # TODO: Try to combine this with `call_routine` below.
-          #
-          case routine.status
-          when :selecting
-            routine.call
-          else
-            @finished << routine
-          end
-        }
+        @selector.register(routine.io, routine.intent).value = routine
       else
         @routines << routine
       end
@@ -129,10 +110,10 @@ module Goru
 
     private def call_routine(routine)
       case routine.status
-      when :running
+      when :running, :selecting
         routine.call
-      when :sleeping, :selecting
-        # ignore these
+      when :sleeping
+        # ignore
       else
         @finished << routine
       end

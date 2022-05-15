@@ -2,7 +2,6 @@
 
 require "is/global"
 
-require_relative "queue"
 require_relative "reactor"
 require_relative "routines/io"
 
@@ -41,6 +40,8 @@ module Goru
       else
         Routine.new(state, &block)
       end
+
+      @reactors.each(&:signal)
     end
 
     # [public]
