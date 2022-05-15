@@ -42,7 +42,22 @@ module Goru
         end
       end
 
-      # TODO: Implement `write`.
+      # [public]
+      #
+      def write(data)
+        result = @io.write_nonblock(data, exception: false)
+
+        case result
+        when nil
+          @status = :finished
+
+          nil
+        when :wait_writable
+          # nothing to do
+        else
+          result
+        end
+      end
     end
   end
 end

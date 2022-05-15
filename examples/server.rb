@@ -40,8 +40,8 @@ class Server
             client_routine.state[:parser] << data
 
             if client_routine.state[:delegate].message_complete?
-              client_routine.io.write_nonblock("HTTP/1.1 204 No Content\r\n")
-              client_routine.io.write_nonblock("content-length: 0\r\n\r\n")
+              client_routine.write("HTTP/1.1 204 No Content\r\n")
+              client_routine.write("content-length: 0\r\n\r\n")
 
               client_routine.state[:delegate].reset
               client_routine.state[:parser].reset
