@@ -7,7 +7,7 @@ module Goru
     # [public]
     #
     class IO < Routine
-      def initialize(state = nil, io:, intent: :rw, &block)
+      def initialize(state = nil, io:, intent:, &block)
         super(state, &block)
 
         @io = io
@@ -41,6 +41,8 @@ module Goru
           result
         end
       end
+
+      # TODO: Implement `write`.
     end
   end
 end

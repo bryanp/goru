@@ -7,7 +7,7 @@ module Goru
     def initialize(state = nil, &block)
       @state = state
       @block = block
-      @status = :running
+      @status = :ready
       @result, @error, @reactor = nil
     end
 
@@ -21,15 +21,11 @@ module Goru
 
     # [public]
     #
-    def running?
-      @status == :running
-    end
-
-    # [public]
-    #
     def call
       @block.call(self)
     rescue => error
+      # TODO: Use `Is::Handler`.
+      #
       puts "[routine error] #{error}"
       puts error.backtrace
 
@@ -66,14 +62,14 @@ module Goru
     # [public]
     #
     def sleep(seconds)
-      @status = :sleeping
+      @status = :idle
       @reactor.sleep(self, seconds)
     end
 
     # [public]
     #
     def wake
-      @status = :running
+      @status = :ready
     end
   end
 end

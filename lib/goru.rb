@@ -8,8 +8,8 @@ module Goru
 
   extend Is::Extension
 
-  def go(state = nil, io: nil, intent: :rw, &block)
-    Scheduler.go(state, io: io, intent: intent, &block)
+  def go(state = nil, io: nil, channel: nil, intent: nil, &block)
+    Scheduler.go(state, io: io, channel: channel, intent: intent, &block)
   end
 end
 

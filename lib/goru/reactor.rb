@@ -39,36 +39,49 @@ module Goru
         cleanup_finished_routines
 
         begin
-          adopt_routine(@queue.pop(true))
-        rescue ThreadError
-        end
-
-        interval = @timers.wait_interval
-
-        if interval.nil?
-          if @routines.empty? && @selector.empty? && @queue.empty?
-            @status = :looking
-            @scheduler.signal(self)
-          else
-            @status = :running
+          if (routine = @queue.pop(true))
+            adopt_routine(routine)
           end
+        rescue ThreadError => e
+          interval = @timers.wait_interval
 
-          if @routines.empty? && @queue.empty?
-            @selector.select do |monitor|
-              call_routine(monitor.value)
+          if interval.nil?
+            if @routines.empty?
+              if @selector.empty?
+                @status = :idle
+                @scheduler.signal(self)
+                if (routine = @queue.pop)
+                  adopt_routine(routine)
+                end
+              else
+                @selector.select do |monitor|
+                  monitor.value.call
+                end
+              end
+            else
+              @selector.select(0) do |monitor|
+                monitor.value.call
+              end
             end
-          elsif !@selector.empty?
-            @selector.select(0) do |monitor|
-              call_routine(monitor.value)
+          elsif interval > 0
+            if @selector.empty?
+              Timers::Wait.for(interval) do |remaining|
+                if (routine = @queue.pop_with_timeout(remaining))
+                  adopt_routine(routine)
+                  break
+                end
+              rescue ThreadError
+                # nothing to do
+              end
+            else
+              @selector.select(interval) do |monitor|
+                monitor.value.call
+              end
             end
           end
-        elsif interval > 0
-          @selector.select(interval) do |monitor|
-            call_routine(monitor.value)
-          end
-        end
 
-        @timers.fire
+          @timers.fire
+        end
       end
     ensure
       @selector.close
@@ -79,6 +92,13 @@ module Goru
     #
     def signal
       @selector.wakeup
+    end
+
+    # [public]
+    #
+    def wakeup
+      @selector.wakeup
+      @queue << :wakeup
     end
 
     # [public]
@@ -98,22 +118,24 @@ module Goru
     end
 
     private def adopt_routine(routine)
-      routine.reactor = self
-
       case routine
       when Routines::IO
+        routine.reactor = self
         @selector.register(routine.io, routine.intent).value = routine
-      else
+      when Routine, Routines::Channel
+        routine.reactor = self
         @routines << routine
+      when :wakeup
+        # ignore
       end
     end
 
     private def call_routine(routine)
       case routine.status
-      when :running, :selecting
-        routine.call
-      when :sleeping
+      when :idle
         # ignore
+      when :ready
+        routine.call
       else
         @finished << routine
       end
@@ -122,11 +144,12 @@ module Goru
     private def cleanup_finished_routines
       until @finished.empty?
         routine = @finished.pop
-        @routines.delete(routine)
 
         case routine
         when Routines::IO
           @selector.deregister(routine.io)
+        else
+          @routines.delete(routine)
         end
       end
     end

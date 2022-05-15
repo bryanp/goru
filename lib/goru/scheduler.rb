@@ -2,7 +2,10 @@
 
 require "is/global"
 
+require_relative "channel"
+require_relative "queue"
 require_relative "reactor"
+require_relative "routines/channel"
 require_relative "routines/io"
 
 module Goru
@@ -32,11 +35,19 @@ module Goru
       }
     end
 
+    INTENTS = %i[r w].freeze
+
     # [public]
     #
-    def go(state = nil, io: nil, intent: :rw, &block)
+    def go(state = nil, io: nil, channel: nil, intent: nil, &block)
+      intent = intent&.to_sym
+      raise ArgumentError, "cannot set both `io` and `channel`" if io && channel
+      raise ArgumentError, "unknown intent: #{intent}" if intent && !INTENTS.include?(intent)
+
       @routines << if io
         Routines::IO.new(state, io: io, intent: intent, &block)
+      elsif channel
+        Routines::Channel.new(state, channel: channel, intent: intent, &block)
       else
         Routine.new(state, &block)
       end
@@ -70,7 +81,7 @@ module Goru
     #
     def signal(reactor)
       synchronize do
-        if @reactors.all? { |reactor| reactor.status == :looking || reactor.status == :stopped }
+        if @reactors.all? { |reactor| reactor.status == :idle || reactor.status == :stopped }
           @stopping = true
         end
 
