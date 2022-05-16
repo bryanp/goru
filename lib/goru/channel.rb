@@ -6,19 +6,26 @@ module Goru
       @size = size
       @messages = []
       @closed = false
+      @observer = nil
     end
+
+    # [public]
+    #
+    attr_writer :observer
 
     # [public]
     #
     def <<(message)
       raise "closed" if @closed
       @messages << message
+      @observer&.channel_received
     end
 
     # [public]
     #
     def read
       @messages.shift
+      @observer&.channel_read
     end
 
     # [public]

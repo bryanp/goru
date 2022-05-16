@@ -11,42 +11,20 @@ module Goru
         super(state, &block)
 
         @channel = channel
+        @channel.observer = self
         @intent = intent
-        @status = :dynamic
-      end
-
-      # [public]
-      #
-      def <<(message)
-        @channel << message
-        @reactor&.wakeup
-      end
-
-      # [public]
-      #
-      def read
-        @channel.read
-      end
-
-      # [public]
-      #
-      def status
-        case @status
-        when :dynamic
-          determine_status
-        else
-          @status
+        @status = case @intent
+        when :r
+          :idle
+        when :w
+          :ready
         end
       end
 
-      private def determine_status
-        case @intent
+      def channel_received
+        @status = case @intent
         when :r
-          if @channel.any?
-            :ready
-          else
-            :idle
-          end
+          :ready
         when :w
           if @channel.full?
             :idle
@@ -54,6 +32,33 @@ module Goru
             :ready
           end
         end
+
+        @reactor&.wakeup
+      end
+
+      def channel_read
+        @status = case @intent
+        when :r
+          if @channel.any?
+            :ready
+          else
+            :idle
+          end
+        when :w
+          :ready
+        end
+      end
+
+      # [public]
+      #
+      def <<(message)
+        @channel << message
+      end
+
+      # [public]
+      #
+      def read
+        @channel.read
       end
     end
   end
