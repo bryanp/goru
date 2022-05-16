@@ -1,9 +1,22 @@
 # frozen_string_literal: true
 
+require "is/handler"
+
 module Goru
   # [public]
   #
   class Routine
+    include Is::Handler
+
+    # TODO: This should essentially be an "unhandled" handler. Probably needs to be introduced into corerb.
+    #
+    handle(StandardError) do |event:|
+      $stderr << <<~ERROR
+        [goru] routine crashed: #{event}
+        #{event.backtrace.join("\n")}
+      ERROR
+    end
+
     def initialize(state = nil, &block)
       @state = state
       @block = block
@@ -24,13 +37,9 @@ module Goru
     def call
       @block.call(self)
     rescue => error
-      # TODO: Use `Is::Handler`.
-      #
-      puts "[routine error] #{error}"
-      puts error.backtrace
-
       @error = error
       @status = :errored
+      trigger(error)
     end
 
     # [public]

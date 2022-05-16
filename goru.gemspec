@@ -21,6 +21,7 @@ Gem::Specification.new do |spec|
 
   spec.add_dependency "core-extension", "~> 0.4"
   spec.add_dependency "core-global", "~> 0.1"
+  spec.add_dependency "core-handler", "~> 0.1"
   spec.add_dependency "nio4r", "~> 2.5"
   spec.add_dependency "timers", "~> 4.3"
 end
