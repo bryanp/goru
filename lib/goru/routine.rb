@@ -39,6 +39,7 @@ module Goru
     rescue => error
       @error = error
       @status = :errored
+      @reactor.routine_errored(self)
       trigger(error)
     end
 
@@ -48,7 +49,7 @@ module Goru
       unless @finished
         @result = result
         @status = :finished
-        @reactor.cleanup_routine(self)
+        @reactor.routine_finished(self)
       end
     end
 
@@ -73,7 +74,7 @@ module Goru
     #
     def sleep(seconds)
       @status = :idle
-      @reactor.sleep(self, seconds)
+      @reactor.routine_asleep(self, seconds)
     end
 
     # [public]

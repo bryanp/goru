@@ -83,7 +83,7 @@ module Goru
     #
     def signal(reactor)
       synchronize do
-        if @reactors.all? { |reactor| reactor.status == :idle || reactor.status == :stopped }
+        if @reactors.all?(&:finished?)
           @stopping = true
         end
 

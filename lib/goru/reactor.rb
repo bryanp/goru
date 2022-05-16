@@ -16,11 +16,13 @@ module Goru
       @queue = queue
       @scheduler = scheduler
       @routines = []
+      @ready = []
       @bridges = []
       @timers = Timers::Group.new
       @selector = NIO::Selector.new
       @stopped = false
       @status = nil
+      @mutex = Mutex.new
     end
 
     # [public]
@@ -30,66 +32,38 @@ module Goru
     # [public]
     #
     def run
-      @status = :running
-
       until @stopped
-        @routines.each do |routine|
-          call_routine(routine)
+        set_status(:running)
+
+        @ready.each do |routine|
+          routine.call
         end
 
         begin
-          if (routine = @queue.pop(true))
-            adopt_routine(routine)
-          end
+          wait_for_routine(block: false)
         rescue ThreadError
           interval = @timers.wait_interval
 
           if interval.nil?
             if @routines.empty?
               if @selector.empty?
-                @status = :idle
-                @scheduler.signal(self)
-                if (routine = @queue.pop)
-                  adopt_routine(routine)
-                end
+                become_idle
               else
-                if @bridges.any? { |bridge| bridge.status == :idle }
-                  if (routine = @queue.pop)
-                    adopt_routine(routine)
-                  end
-                else
-                  @selector.select do |monitor|
-                    monitor.value.call
-                  end
+                wait_for_bridge do
+                  wait_for_selector
                 end
               end
             else
-              if @bridges.any? { |bridge| bridge.status == :idle }
-                if (routine = @queue.pop)
-                  adopt_routine(routine)
-                end
-              else
-                @selector.select(0) do |monitor|
-                  monitor.value.call
-                end
+              wait_for_bridge do
+                wait_for_selector(0)
               end
             end
           elsif interval > 0
             if @selector.empty?
-              Timers::Wait.for(interval) do |remaining|
-                if (routine = @queue.pop_with_timeout(remaining))
-                  adopt_routine(routine)
-                  break
-                end
-              rescue ThreadError
-                # nothing to do
-              end
+              wait_for_interval(interval)
             else
-              # TODO: See notes about bridge above. Anytime we're selecting, we first need to check if there are bridges
-              # waiting for data (whose selectors may actually be unblocked).
-              #
-              @selector.select(interval) do |monitor|
-                monitor.value.call
+              wait_for_bridge do
+                wait_for_selector(interval)
               end
             end
           end
@@ -99,7 +73,57 @@ module Goru
       end
     ensure
       @selector.close
-      @status = :finished
+      set_status(:finished)
+    end
+
+    private def become_idle
+      set_status(:idle)
+      @scheduler.signal(self)
+      wait_for_routine
+    end
+
+    private def wait_for_selector(timeout = nil)
+      @selector.select(timeout) do |monitor|
+        monitor.value.call
+      end
+    end
+
+    private def wait_for_bridge
+      # TODO: This approach is terribly slow, but is more accurate.
+      #
+      if @bridges.any? && @bridges.all? { |bridge| bridge.status == :idle }
+        wait_for_routine
+      else
+        yield
+      end
+    end
+
+    private def wait_for_interval(timeout)
+      Timers::Wait.for(timeout) do |remaining|
+        break if wait_for_routine(timeout: remaining)
+      rescue ThreadError
+        # nothing to do
+      end
+    end
+
+    private def wait_for_routine(block: true, timeout: nil)
+      if timeout
+        if (routine = @queue.pop_with_timeout(timeout))
+          adopt_routine(routine)
+        end
+      else
+        if (routine = @queue.pop(!block))
+          adopt_routine(routine)
+        end
+      end
+    end
+
+    # [public]
+    #
+    def finished?
+      @mutex.synchronize do
+        @status == :idle || @status == :stopped
+      end
     end
 
     # [public]
@@ -125,9 +149,11 @@ module Goru
 
     # [public]
     #
-    def sleep(routine, seconds)
+    def routine_asleep(routine, seconds)
+      routine_not_ready(routine)
       @timers.after(seconds) {
         routine.wake
+        routine_ready(routine)
       }
     end
 
@@ -145,29 +171,46 @@ module Goru
         #
         routine.reactor = self
         @bridges << routine
-      when Routine, Routines::Channel
+      when Routine
         routine.reactor = self
         @routines << routine
+        if routine.status == :ready
+          routine_ready(routine)
+        end
       end
     end
 
     # [public]
     #
-    def cleanup_routine(routine)
+    def routine_finished(routine)
       case routine
       when Routines::Bridge
         @bridges.delete(routine)
       when Routines::IO
         @selector.deregister(routine.io)
       else
+        routine_not_ready(routine)
         @routines.delete(routine)
       end
     end
 
-    private def call_routine(routine)
-      case routine.status
-      when :ready
-        routine.call
+    # [public]
+    #
+    def routine_errored(routine)
+      routine_not_ready(routine)
+    end
+
+    private def routine_ready(routine)
+      @ready << routine
+    end
+
+    private def routine_not_ready(routine)
+      @ready.delete(routine)
+    end
+
+    private def set_status(status)
+      @mutex.synchronize do
+        @status = status
       end
     end
   end
