@@ -5,6 +5,7 @@ require "nio"
 require "timers/group"
 require "timers/wait"
 
+require_relative "routines/bridge"
 require_relative "routines/io"
 
 module Goru
@@ -15,7 +16,7 @@ module Goru
       @queue = queue
       @scheduler = scheduler
       @routines = []
-      @finished = []
+      @bridges = []
       @timers = Timers::Group.new
       @selector = NIO::Selector.new
       @stopped = false
@@ -36,13 +37,11 @@ module Goru
           call_routine(routine)
         end
 
-        cleanup_finished_routines
-
         begin
           if (routine = @queue.pop(true))
             adopt_routine(routine)
           end
-        rescue ThreadError => e
+        rescue ThreadError
           interval = @timers.wait_interval
 
           if interval.nil?
@@ -54,13 +53,25 @@ module Goru
                   adopt_routine(routine)
                 end
               else
-                @selector.select do |monitor|
-                  monitor.value.call
+                if @bridges.any? { |bridge| bridge.status == :idle }
+                  if (routine = @queue.pop)
+                    adopt_routine(routine)
+                  end
+                else
+                  @selector.select do |monitor|
+                    monitor.value.call
+                  end
                 end
               end
             else
-              @selector.select(0) do |monitor|
-                monitor.value.call
+              if @bridges.any? { |bridge| bridge.status == :idle }
+                if (routine = @queue.pop)
+                  adopt_routine(routine)
+                end
+              else
+                @selector.select(0) do |monitor|
+                  monitor.value.call
+                end
               end
             end
           elsif interval > 0
@@ -74,6 +85,9 @@ module Goru
                 # nothing to do
               end
             else
+              # TODO: See notes about bridge above. Anytime we're selecting, we first need to check if there are bridges
+              # waiting for data (whose selectors may actually be unblocked).
+              #
               @selector.select(interval) do |monitor|
                 monitor.value.call
               end
@@ -117,40 +131,43 @@ module Goru
       }
     end
 
-    private def adopt_routine(routine)
+    # [public]
+    #
+    def adopt_routine(routine)
       case routine
       when Routines::IO
+        monitor = @selector.register(routine.io, routine.intent)
+        monitor.value = routine
+        routine.monitor = monitor
         routine.reactor = self
-        @selector.register(routine.io, routine.intent).value = routine
+      when Routines::Bridge
+        # TODO: Ideally we can combine everything into just a routine...
+        #
+        routine.reactor = self
+        @bridges << routine
       when Routine, Routines::Channel
         routine.reactor = self
         @routines << routine
-      when :wakeup
-        # ignore
+      end
+    end
+
+    # [public]
+    #
+    def cleanup_routine(routine)
+      case routine
+      when Routines::Bridge
+        @bridges.delete(routine)
+      when Routines::IO
+        @selector.deregister(routine.io)
+      else
+        @routines.delete(routine)
       end
     end
 
     private def call_routine(routine)
       case routine.status
-      when :idle
-        # ignore
       when :ready
         routine.call
-      else
-        @finished << routine
-      end
-    end
-
-    private def cleanup_finished_routines
-      until @finished.empty?
-        routine = @finished.pop
-
-        case routine
-        when Routines::IO
-          @selector.deregister(routine.io)
-        else
-          @routines.delete(routine)
-        end
       end
     end
   end

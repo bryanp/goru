@@ -39,6 +39,7 @@ module Goru
       unless @finished
         @result = result
         @status = :finished
+        @reactor.cleanup_routine(self)
       end
     end
 

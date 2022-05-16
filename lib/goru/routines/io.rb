@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative "../routine"
+require_relative "bridge"
 
 module Goru
   module Routines
@@ -13,11 +14,14 @@ module Goru
         @io = io
         @intent = intent
         @status = :selecting
+        @monitor = nil
       end
 
       # [public]
       #
       attr_reader :io, :intent
+
+      attr_writer :monitor
 
       # [public]
       #
@@ -32,7 +36,7 @@ module Goru
 
         case result
         when nil
-          @status = :finished
+          finished
 
           nil
         when :wait_readable
@@ -49,7 +53,7 @@ module Goru
 
         case result
         when nil
-          @status = :finished
+          finished
 
           nil
         when :wait_writable
@@ -57,6 +61,24 @@ module Goru
         else
           result
         end
+      end
+
+      # [public]
+      #
+      def intent=(intent)
+        intent = intent.to_sym
+
+        # TODO: Validate intent (move validation from scheduler into the routines).
+        #
+        @monitor.interests = intent
+        @intent = intent
+      end
+
+      # [public]
+      #
+      def bridge(channel)
+        bridge = Bridge.new(routine: self, channel: channel)
+        @reactor.adopt_routine(bridge)
       end
     end
   end

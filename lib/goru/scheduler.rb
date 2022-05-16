@@ -22,6 +22,8 @@ module Goru
       @routines = Queue.new
       @condition = new_cond
 
+      # TODO: Base this on the number of cpus?
+      #
       @reactors = 10.times.map {
         Reactor.new(queue: @routines, scheduler: self)
       }
