@@ -39,13 +39,15 @@ module Goru
         case result
         when nil
           finished
-
           nil
         when :wait_readable
           # nothing to do
         else
           result
         end
+      rescue Errno::ECONNRESET
+        finished
+        nil
       end
 
       # [public]
@@ -56,13 +58,15 @@ module Goru
         case result
         when nil
           finished
-
           nil
         when :wait_writable
           # nothing to do
         else
           result
         end
+      rescue Errno::ECONNRESET
+        finished
+        nil
       end
 
       # [public]
