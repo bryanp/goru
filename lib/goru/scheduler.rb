@@ -8,6 +8,9 @@ require_relative "reactor"
 require_relative "routines/channel"
 require_relative "routines/io"
 
+require_relative "routines/channels/readable"
+require_relative "routines/channels/writable"
+
 module Goru
   # [public]
   #
@@ -49,7 +52,12 @@ module Goru
       @routines << if io
         Routines::IO.new(state, io: io, intent: intent, &block)
       elsif channel
-        Routines::Channel.new(state, channel: channel, intent: intent, &block)
+        case intent
+        when :r
+          Routines::Channels::Readable.new(state, channel: channel, &block)
+        when :w
+          Routines::Channels::Writable.new(state, channel: channel, &block)
+        end
       else
         Routine.new(state, &block)
       end

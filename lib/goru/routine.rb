@@ -20,7 +20,7 @@ module Goru
     def initialize(state = nil, &block)
       @state = state
       @block = block
-      @status = :ready
+      set_status(:ready)
       @result, @error, @reactor = nil
     end
 
@@ -30,7 +30,10 @@ module Goru
 
     # [public]
     #
-    attr_writer :reactor
+    def reactor=(reactor)
+      @reactor = reactor
+      status_changed
+    end
 
     # [public]
     #
@@ -38,8 +41,7 @@ module Goru
       @block.call(self)
     rescue => error
       @error = error
-      @status = :errored
-      @reactor.routine_errored(self)
+      set_status(:errored)
       trigger(error)
     end
 
@@ -48,8 +50,7 @@ module Goru
     def finished(result = nil)
       unless @finished
         @result = result
-        @status = :finished
-        @reactor.routine_finished(self)
+        set_status(:finished)
       end
     end
 
@@ -73,14 +74,30 @@ module Goru
     # [public]
     #
     def sleep(seconds)
-      @status = :idle
+      set_status(:idle)
       @reactor.routine_asleep(self, seconds)
     end
 
     # [public]
     #
     def wake
-      @status = :ready
+      set_status(:ready)
+    end
+
+    # [public]
+    #
+    private def set_status(status)
+      @status = status
+      status_changed
+    end
+
+    # [public]
+    #
+    private def status_changed
+      case @status
+      when :finished
+        @reactor&.routine_finished(self)
+      end
     end
   end
 end

@@ -1,7 +1,8 @@
 # frozen_string_literal: true
 
 require_relative "../routine"
-require_relative "bridge"
+require_relative "bridges/readable"
+require_relative "bridges/writable"
 
 module Goru
   module Routines
@@ -15,6 +16,7 @@ module Goru
         @intent = intent
         @status = :selecting
         @monitor = nil
+        @finishers = []
       end
 
       # [public]
@@ -76,9 +78,34 @@ module Goru
 
       # [public]
       #
-      def bridge(channel)
-        bridge = Bridge.new(routine: self, channel: channel)
+      def bridge(channel, intent:)
+        # TODO: Validate intent.
+        #
+        bridge = case intent
+        when :r
+          Bridges::Readable.new(routine: self, channel: channel)
+        when :w
+          Bridges::Writable.new(routine: self, channel: channel)
+        end
+
+        on_finished { bridge.finished }
         @reactor.adopt_routine(bridge)
+        bridge
+      end
+
+      # [public]
+      #
+      def on_finished(&block)
+        @finishers << block
+      end
+
+      private def status_changed
+        case @status
+        when :finished
+          @finishers.each(&:call)
+        end
+
+        super
       end
     end
   end

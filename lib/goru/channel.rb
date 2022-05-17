@@ -1,12 +1,14 @@
 # frozen_string_literal: true
 
+require "set"
+
 module Goru
   class Channel
     def initialize(size: nil)
       @size = size
       @messages = []
       @closed = false
-      @observer = nil
+      @observers = Set.new
     end
 
     # [public]
@@ -18,14 +20,15 @@ module Goru
     def <<(message)
       raise "closed" if @closed
       @messages << message
-      @observer&.channel_received
+      @observers.each(&:channel_received)
     end
 
     # [public]
     #
     def read
-      @messages.shift
-      @observer&.channel_read
+      message = @messages.shift
+      @observers.each(&:channel_read)
+      message
     end
 
     # [public]
@@ -56,6 +59,38 @@ module Goru
     #
     def close
       @closed = true
+      @observers.each(&:channel_closed)
+    end
+
+    # [public]
+    #
+    def reopen
+      @closed = false
+      @observers.each(&:channel_reopened)
+    end
+
+    # [public]
+    #
+    def clear
+      @messages.clear
+    end
+
+    # [public]
+    #
+    def length
+      @messages.length
+    end
+
+    # [public]
+    #
+    def add_observer(observer)
+      @observers << observer
+    end
+
+    # [public]
+    #
+    def remove_observer(observer)
+      @observers.delete(observer)
     end
   end
 end

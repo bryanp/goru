@@ -38,6 +38,7 @@ class Writer
           routine.update(:sleep)
           puts "wrote: #{value}"
         else
+          channel.close
           routine.finished
         end
       end

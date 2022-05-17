@@ -12,45 +12,38 @@ module Goru
 
         @routine = routine
         @channel = channel
-        @status = :dynamic
+        @channel.add_observer(self)
       end
 
       # [public]
       #
-      def status
-        case @status
-        when :dynamic
-          status = determine_status
-          finished if status == :finished
-          status
-        else
-          @status
-        end
+      def ready?
+        @status == :ready
       end
 
-      private def determine_status
-        if @routine.status == :finished
-          :finished
-        else
-          case @routine.intent
-          when :r
-            if @channel.closed?
-              :finished
-            elsif @channel.full?
-              :idle
-            else
-              :ready
-            end
-          when :w
-            if @channel.any?
-              :ready
-            elsif @channel.closed?
-              :finished
-            else
-              :idle
-            end
-          end
+      private def status_changed
+        case @status
+        when :finished
+          @channel.remove_observer(self)
         end
+
+        super
+      end
+
+      def channel_received
+        update_status
+      end
+
+      def channel_read
+        update_status
+      end
+
+      def channel_closed
+        update_status
+      end
+
+      def channel_reopened
+        update_status
       end
     end
   end

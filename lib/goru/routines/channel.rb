@@ -7,58 +7,38 @@ module Goru
     # [public]
     #
     class Channel < Routine
-      def initialize(state = nil, channel:, intent:, &block)
+      def initialize(state = nil, channel:, &block)
         super(state, &block)
 
         @channel = channel
-        @channel.observer = self
-        @intent = intent
-        @status = case @intent
-        when :r
-          :idle
-        when :w
-          :ready
+        @channel.add_observer(self)
+      end
+
+      private def status_changed
+        case @status
+        when :ready
+          @reactor&.wakeup
+        when :finished
+          @channel.remove_observer(self)
         end
+
+        super
       end
 
       def channel_received
-        @status = case @intent
-        when :r
-          :ready
-        when :w
-          if @channel.full?
-            :idle
-          else
-            :ready
-          end
-        end
-
-        @reactor&.wakeup
+        update_status
       end
 
       def channel_read
-        @status = case @intent
-        when :r
-          if @channel.any?
-            :ready
-          else
-            :idle
-          end
-        when :w
-          :ready
-        end
+        update_status
       end
 
-      # [public]
-      #
-      def <<(message)
-        @channel << message
+      def channel_closed
+        update_status
       end
 
-      # [public]
-      #
-      def read
-        @channel.read
+      def channel_reopened
+        update_status
       end
     end
   end

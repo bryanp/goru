@@ -42,6 +42,7 @@ class Writer
         routine << value
         puts "wrote: #{value}"
       else
+        channel.close
         routine.finished
       end
     }

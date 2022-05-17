@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "nio"
+require "set"
 
 require "timers/group"
 require "timers/wait"
@@ -15,9 +16,8 @@ module Goru
     def initialize(queue:, scheduler:)
       @queue = queue
       @scheduler = scheduler
-      @routines = []
-      @ready = []
-      @bridges = []
+      @routines = Set.new
+      @bridges = Set.new
       @timers = Timers::Group.new
       @selector = NIO::Selector.new
       @stopped = false
@@ -35,8 +35,8 @@ module Goru
       until @stopped
         set_status(:running)
 
-        @ready.each do |routine|
-          routine.call
+        @routines.each do |routine|
+          call_routine(routine)
         end
 
         begin
@@ -89,9 +89,7 @@ module Goru
     end
 
     private def wait_for_bridge
-      # TODO: This approach is terribly slow, but is more accurate.
-      #
-      if @bridges.any? && @bridges.all? { |bridge| bridge.status == :idle }
+      if @bridges.any?(&:applicable?) && @bridges.none?(&:ready?)
         wait_for_routine
       else
         yield
@@ -129,13 +127,15 @@ module Goru
     # [public]
     #
     def signal
-      @selector.wakeup
+      unless @selector.empty?
+        @selector.wakeup
+      end
     end
 
     # [public]
     #
     def wakeup
-      @selector.wakeup
+      signal
       @queue << :wakeup
     end
 
@@ -150,10 +150,8 @@ module Goru
     # [public]
     #
     def routine_asleep(routine, seconds)
-      routine_not_ready(routine)
       @timers.after(seconds) {
         routine.wake
-        routine_ready(routine)
       }
     end
 
@@ -174,9 +172,6 @@ module Goru
       when Routine
         routine.reactor = self
         @routines << routine
-        if routine.status == :ready
-          routine_ready(routine)
-        end
       end
     end
 
@@ -189,28 +184,20 @@ module Goru
       when Routines::IO
         @selector.deregister(routine.io)
       else
-        routine_not_ready(routine)
         @routines.delete(routine)
       end
-    end
-
-    # [public]
-    #
-    def routine_errored(routine)
-      routine_not_ready(routine)
-    end
-
-    private def routine_ready(routine)
-      @ready << routine
-    end
-
-    private def routine_not_ready(routine)
-      @ready.delete(routine)
     end
 
     private def set_status(status)
       @mutex.synchronize do
         @status = status
+      end
+    end
+
+    private def call_routine(routine)
+      case routine.status
+      when :ready
+        routine.call
       end
     end
   end
