@@ -106,7 +106,7 @@ module Goru
 
     private def wait_for_routine(block: true, timeout: nil)
       if timeout
-        if (routine = @queue.pop_with_timeout(timeout))
+        if (routine = @queue.pop(timeout: timeout))
           adopt_routine(routine)
         end
       else

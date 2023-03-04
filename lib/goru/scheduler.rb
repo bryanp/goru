@@ -3,7 +3,6 @@
 require "is/global"
 
 require_relative "channel"
-require_relative "queue"
 require_relative "reactor"
 require_relative "routines/channel"
 require_relative "routines/io"
@@ -22,7 +21,7 @@ module Goru
       super
 
       @stopping = false
-      @routines = Queue.new
+      @routines = Thread::Queue.new
       @condition = new_cond
 
       # TODO: Base this on the number of cpus?
