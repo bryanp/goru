@@ -21,7 +21,7 @@ commit:
     - git
 
   externals:
-    - repo: "metabahn/commit-templates"
+    - repo: "bryanp/commit-templates"
       private: true
 
 license:
@@ -34,11 +34,11 @@ project:
 
   author:
     name: "Bryan Powell"
-    email: "bryan@metabahn.com"
-    homepage: "https://github.com/metabahn/goru/"
+    email: "bryan@bryanp.org"
+    homepage: "https://github.com/bryanp/goru/"
 
   copyright:
-    attribution: "Metabahn"
+    attribution: "Bryan Powell"
     year: 2022
 
 ruby:
