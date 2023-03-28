@@ -37,4 +37,4 @@ result = RubyProf.profile do
 end
 
 printer = RubyProf::FlatPrinter.new(result)
-printer.print(STDOUT, {})
+printer.print($stdout, {})
