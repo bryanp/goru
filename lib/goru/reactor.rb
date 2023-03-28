@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "nio"
-require "set"
 
 require "timers/group"
 require "timers/wait"
@@ -109,10 +108,8 @@ module Goru
         if (routine = @queue.pop(timeout: timeout))
           adopt_routine(routine)
         end
-      else
-        if (routine = @queue.pop(!block))
-          adopt_routine(routine)
-        end
+      elsif (routine = @queue.pop(!block))
+        adopt_routine(routine)
       end
     end
 
