@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "set"
+require_relative "./reactor"
 
 module Goru
   class Channel
