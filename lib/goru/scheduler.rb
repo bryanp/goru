@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "etc"
 require "is/global"
 
 require_relative "channel"
@@ -16,17 +17,31 @@ module Goru
   class Scheduler
     include Is::Global
     include MonitorMixin
+    
+    class << self
+      # Prevent issues when including `Goru` at the toplevel.
+      #
+      # [public]
+      #
+      def go(...)
+        global.go(...)
+      end
+      
+      # [public]
+      #
+      def default_scheduler_count
+        Etc.nprocessors
+      end
+    end
 
-    def initialize(...)
-      super
+    def initialize(count: self.class.default_scheduler_count)
+      super()
 
       @stopping = false
       @routines = Thread::Queue.new
       @condition = new_cond
 
-      # TODO: Base this on the number of cpus?
-      #
-      @reactors = 10.times.map {
+      @reactors = count.times.map {
         Reactor.new(queue: @routines, scheduler: self)
       }
 
@@ -47,8 +62,8 @@ module Goru
       intent = intent&.to_sym
       raise ArgumentError, "cannot set both `io` and `channel`" if io && channel
       raise ArgumentError, "unknown intent: #{intent}" if intent && !INTENTS.include?(intent)
-
-      @routines << if io
+      
+      routine = if io
         Routines::IO.new(state, io: io, intent: intent, &block)
       elsif channel
         case intent
@@ -61,7 +76,10 @@ module Goru
         Routine.new(state, &block)
       end
 
+      @routines << routine
       @reactors.each(&:signal)
+      
+      routine
     end
 
     # [public]
