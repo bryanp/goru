@@ -17,7 +17,7 @@ module Goru
   class Scheduler
     include Is::Global
     include MonitorMixin
-    
+
     class << self
       # Prevent issues when including `Goru` at the toplevel.
       #
@@ -26,7 +26,7 @@ module Goru
       def go(...)
         global.go(...)
       end
-      
+
       # [public]
       #
       def default_scheduler_count
@@ -54,15 +54,11 @@ module Goru
       }
     end
 
-    INTENTS = %i[r w].freeze
-
     # [public]
     #
     def go(state = nil, io: nil, channel: nil, intent: nil, &block)
-      intent = intent&.to_sym
       raise ArgumentError, "cannot set both `io` and `channel`" if io && channel
-      raise ArgumentError, "unknown intent: #{intent}" if intent && !INTENTS.include?(intent)
-      
+
       routine = if io
         Routines::IO.new(state, io: io, intent: intent, &block)
       elsif channel
@@ -78,7 +74,7 @@ module Goru
 
       @routines << routine
       @reactors.each(&:signal)
-      
+
       routine
     end
 

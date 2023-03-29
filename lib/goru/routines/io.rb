@@ -13,7 +13,7 @@ module Goru
         super(state, &block)
 
         @io = io
-        @intent = intent
+        @intent = normalize_intent(intent)
         @status = :selecting
         @monitor = nil
         @finishers = []
@@ -72,10 +72,9 @@ module Goru
       # [public]
       #
       def intent=(intent)
-        intent = intent.to_sym
+        intent = normalize_intent(intent)
+        validate_intent!(intent)
 
-        # TODO: Validate intent (move validation from scheduler into the routines).
-        #
         @monitor.interests = intent
         @intent = intent
       end
@@ -83,8 +82,9 @@ module Goru
       # [public]
       #
       def bridge(channel, intent:)
-        # TODO: Validate intent.
-        #
+        intent = normalize_intent(intent)
+        validate_intent!(intent)
+
         bridge = case intent
         when :r
           Bridges::Readable.new(routine: self, channel: channel)
@@ -110,6 +110,16 @@ module Goru
         end
 
         super
+      end
+
+      INTENTS = %i[r w].freeze
+
+      private def validate_intent!(intent)
+        raise ArgumentError, "unknown intent: #{intent}" unless INTENTS.include?(intent)
+      end
+
+      private def normalize_intent(intent)
+        intent.to_sym
       end
     end
   end
