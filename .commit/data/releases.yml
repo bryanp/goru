@@ -6,6 +6,7 @@
   - id: 1
     type: add
     summary: Initial implementation
+    link: https://github.com/bryanp/featuring
     author:
       username: bryanp
       link: https://github.com/bryanp
