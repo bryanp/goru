@@ -9,8 +9,6 @@ class Errored
     # Custom error handler.
     #
     go { |routine|
-      # TODO: Should we allow handlers to be defined here? I think not... just on the main object.
-      #
       routine.handle(StandardError) do |event:|
         puts "!!! #{event}"
       end

@@ -8,8 +8,6 @@ module Goru
   class Routine
     include Is::Handler
 
-    # TODO: This should essentially be an "unhandled" handler. Probably needs to be introduced into corerb.
-    #
     handle(StandardError) do |event:|
       $stderr << <<~ERROR
         [goru] routine crashed: #{event}

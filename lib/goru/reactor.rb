@@ -162,8 +162,6 @@ module Goru
         routine.monitor = monitor
         routine.reactor = self
       when Routines::Bridge
-        # TODO: Ideally we can combine everything into just a routine...
-        #
         routine.reactor = self
         @bridges << routine
       when Routine
