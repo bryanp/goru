@@ -9,10 +9,10 @@ Gem::Specification.new do |spec|
   spec.description = spec.summary
 
   spec.author = "Bryan Powell"
-  spec.email = "bryan@metabahn.com"
-  spec.homepage = "https://github.com/metabahn/goru/"
+  spec.email = "bryan@bryanp.org"
+  spec.homepage = "https://github.com/bryanp/goru/"
 
-  spec.required_ruby_version = ">= 2.6.7"
+  spec.required_ruby_version = ">= 3.2.0"
 
   spec.license = "MPL-2.0"
 
@@ -21,7 +21,6 @@ Gem::Specification.new do |spec|
 
   spec.add_dependency "core-extension", "~> 0.4"
   spec.add_dependency "core-global", "~> 0.1"
-  spec.add_dependency "core-handler", "~> 0.1"
   spec.add_dependency "nio4r", "~> 2.5"
   spec.add_dependency "timers", "~> 4.3"
 end
