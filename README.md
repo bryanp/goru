@@ -122,8 +122,6 @@ Goru::Scheduler.go { |routine|
 }
 ```
 
-See [`core-handler`](https://github.com/bryanp/corerb/tree/main/handler) for more about error handling.
-
 ## Sleeping
 
 Goru implements a non-blocking version of `sleep` that makes the routine ineligible to be called until the sleep time
