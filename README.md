@@ -174,7 +174,7 @@ Goru includes a pattern for non-blocking io. With it you can implement non-block
 Routines that involve io must be created with an io object and an intent. Possible intents include:
 
 * `:r` for reading
-* `:r` for writing
+* `:w` for writing
 * `:rw` for reading and writing
 
 Here is the beginning of an http server in Goru:
