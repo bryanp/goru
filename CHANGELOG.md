@@ -1,6 +1,6 @@
-## v0.2.0
+## [v0.2.0](https://github.com/bryanp/goru/releases/tag/v0.2.0)
 
-*unreleased*
+*released on 2023-05-01*
 
   * `fix` [#6](https://github.com/bryanp/goru/pull/6) Finish routines on error ([bryanp](https://github.com/bryanp))
   * `fix` [#5](https://github.com/bryanp/goru/pull/5) Correctly set channel status to `finished` when closed ([bryanp](https://github.com/bryanp))
