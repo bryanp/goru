@@ -24,7 +24,7 @@ module Goru
           status = if @channel.full?
             :idle
           elsif @channel.closed?
-            :idle
+            :finished
           else
             :ready
           end
