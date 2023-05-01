@@ -1,0 +1,69 @@
+name: ci
+
+on:
+  pull_request:
+    branches:
+    - main
+
+jobs:
+  lint-ruby:
+    runs-on: ubuntu-latest
+
+    name: "lint / ${{ matrix.ruby }}"
+
+    strategy:
+      matrix:
+        ruby:
+          - 3.2.0
+
+      fail-fast: false
+
+    steps:
+      - uses: actions/checkout@v1
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "${{matrix.ruby}}"
+
+      - name: Install Dependencies
+        shell: bash -l -e -o pipefail {0}
+        run: |
+          rm -f Gemfile.lock
+          bundle install --jobs=3 && bundle update --jobs=3
+
+      - name: Run Linter
+        shell: bash -l -e -o pipefail {0}
+        run: |
+          CI=true bundle exec standardrb
+
+  test-ruby:
+    runs-on: ubuntu-latest
+
+    name: "test / ${{ matrix.ruby }}"
+
+    strategy:
+      matrix:
+        ruby:
+          - 3.2.0
+
+      fail-fast: false
+
+    steps:
+      - uses: actions/checkout@v1
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "${{matrix.ruby}}"
+
+      - name: Install Dependencies
+        shell: bash -l -e -o pipefail {0}
+        run: |
+          rm -f Gemfile.lock
+          bundle install --jobs=3 && bundle update --jobs=3
+
+      - name: Run Tests
+        shell: bash -l -e -o pipefail {0}
+        run: |
+          CI=true bundle exec rspec

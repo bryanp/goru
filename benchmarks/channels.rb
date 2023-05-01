@@ -36,8 +36,8 @@ values = 100_000.times.to_a
 channel = Goru::Channel.new
 
 start = Time.now
-reader = Reader.new(channel: channel)
-writer = Writer.new(channel: channel, values: values)
+Reader.new(channel: channel)
+Writer.new(channel: channel, values: values)
 
 Goru::Scheduler.wait
 puts Time.now - start
