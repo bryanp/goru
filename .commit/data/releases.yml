@@ -1,6 +1,13 @@
 ---
 - version: v0.2.0
   changes:
+  - id: 3
+    type: fix
+    summary: Update `Goru::Channel#full?` to always return a boolean
+    link: https://github.com/bryanp/goru/pull/3
+    author:
+      username: bryanp
+      link: https://github.com/bryanp
   - id: 2
     type: dep
     summary: Remove ability to reopen channels
