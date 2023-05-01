@@ -1,6 +1,13 @@
 ---
 - version: v0.2.0
   changes:
+  - id: 5
+    type: fix
+    summary: Correctly set channel status to `finished` when closed
+    link: https://github.com/bryanp/goru/pull/5
+    author:
+      username: bryanp
+      link: https://github.com/bryanp
   - id: 4
     type: chg
     summary: Only log when routines are in debug mode
