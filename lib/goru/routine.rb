@@ -9,10 +9,12 @@ module Goru
     include Is::Handler
 
     handle(StandardError) do |event:|
-      $stderr << <<~ERROR
-        [goru] routine crashed: #{event}
-        #{event.backtrace.join("\n")}
-      ERROR
+      if @debug
+        $stderr << <<~ERROR
+          [goru] routine crashed: #{event}
+          #{event.backtrace.join("\n")}
+        ERROR
+      end
     end
 
     def initialize(state = nil, &block)
@@ -20,11 +22,16 @@ module Goru
       @block = block
       set_status(:ready)
       @result, @error, @reactor = nil
+      @debug = true
     end
 
     # [public]
     #
-    attr_reader :state, :status
+    attr_reader :state, :status, :error
+
+    # [public]
+    #
+    attr_writer :debug
 
     # [public]
     #
