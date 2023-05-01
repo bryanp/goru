@@ -1,4 +1,13 @@
 ---
+- version: v0.2.0
+  changes:
+  - id: 2
+    type: dep
+    summary: Remove ability to reopen channels
+    link: https://github.com/bryanp/goru/pull/2
+    author:
+      username: bryanp
+      link: https://github.com/bryanp
 - version: v0.1.0
   date: '2023-03-29'
   link: https://github.com/bryanp/goru/releases/tag/v0.1.0
