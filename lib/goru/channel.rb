@@ -46,7 +46,7 @@ module Goru
     # [public]
     #
     def full?
-      @size && @messages.size == @size
+      !!@size && @messages.size == @size
     end
 
     # [public]
