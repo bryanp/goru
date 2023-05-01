@@ -100,7 +100,7 @@ module Goru
     #
     private def status_changed
       case @status
-      when :finished
+      when :errored, :finished
         @reactor&.routine_finished(self)
       end
     end
