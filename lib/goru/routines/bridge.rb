@@ -41,10 +41,6 @@ module Goru
       def channel_closed
         update_status
       end
-
-      def channel_reopened
-        update_status
-      end
     end
   end
 end

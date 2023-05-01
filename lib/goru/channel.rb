@@ -64,13 +64,6 @@ module Goru
 
     # [public]
     #
-    def reopen
-      @closed = false
-      @observers.each(&:channel_reopened)
-    end
-
-    # [public]
-    #
     def clear
       @messages.clear
     end
