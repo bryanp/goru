@@ -39,7 +39,7 @@ RSpec.describe "scheduling and running routines" do
 
     scheduler.wait
 
-    expect(values.count { |value| value == 0}).to eq(5)
-    expect(values.count { |value| value == 1}).to eq(5)
+    expect(values.count { |value| value == 0 }).to eq(5)
+    expect(values.count { |value| value == 1 }).to eq(5)
   end
 end

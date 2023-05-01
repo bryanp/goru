@@ -54,3 +54,10 @@ ruby:
         spec.add_dependency "core-global", "~> 0.2"
         spec.add_dependency "nio4r", "~> 2.5"
         spec.add_dependency "timers", "~> 4.3"
+  standard:
+      extra: |-2
+        ignore:
+          - 'examples/memory.rb':
+            - Style/GlobalVars
+          - 'examples/simple.rb':
+            - Style/MixinUsage

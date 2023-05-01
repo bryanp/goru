@@ -1,4 +1,8 @@
 format: progress
 parallel: true
 
-
+ignore:
+  - 'examples/memory.rb':
+    - Style/GlobalVars
+  - 'examples/simple.rb':
+    - Style/MixinUsage

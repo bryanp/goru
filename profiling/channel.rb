@@ -37,8 +37,8 @@ end
 values = 10_000.times.to_a
 result = RubyProf.profile do
   channel = Goru::Channel.new
-  reader = Reader.new(channel: channel)
-  writer = Writer.new(channel: channel, values: values)
+  Reader.new(channel: channel)
+  Writer.new(channel: channel, values: values)
   Goru::Scheduler.wait
 end
 
