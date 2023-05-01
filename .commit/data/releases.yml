@@ -1,6 +1,13 @@
 ---
 - version: v0.2.0
   changes:
+  - id: 6
+    type: fix
+    summary: Finish routines on error
+    link: https://github.com/bryanp/goru/pull/6
+    author:
+      username: bryanp
+      link: https://github.com/bryanp
   - id: 5
     type: fix
     summary: Correctly set channel status to `finished` when closed
