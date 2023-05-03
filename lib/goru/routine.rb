@@ -87,6 +87,12 @@ module Goru
 
     # [public]
     #
+    def ready?
+      @status == :ready
+    end
+
+    # [public]
+    #
     private def set_status(status)
       @status = status
       status_changed
@@ -99,6 +105,12 @@ module Goru
       when :errored, :finished
         @reactor&.routine_finished(self)
       end
+    end
+
+    # [public]
+    #
+    def adopted
+      # noop
     end
   end
 end

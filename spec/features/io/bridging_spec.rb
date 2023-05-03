@@ -18,11 +18,13 @@ RSpec.describe "writes using a bridge" do
     # wait a second for the server to start
     sleep(0.25)
 
-    statuses = 3.times.map {
-      HTTP.get("http://localhost:4242").status.to_i
-    }
-
-    server.stop
+    begin
+      statuses = 3.times.map {
+        HTTP.timeout(1).get("http://localhost:4242").status.to_i
+      }
+    ensure
+      server.stop
+    end
 
     expect(statuses.count).to eq(3)
     expect(statuses.uniq.count).to eq(1)

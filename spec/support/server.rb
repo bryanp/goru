@@ -32,7 +32,7 @@ class Server
       writer = Goru::Channel.new
       state = {delegate: delegate, parser: parser, writer: writer}
 
-      go(state, io: client_io, intent: :r) { |client_routine|
+      go(state, io: client_io, intent: :r) do |client_routine|
         client_routine.debug = true
 
         case client_routine.intent
@@ -41,7 +41,13 @@ class Server
         when :w
           write(routine: client_routine)
         end
-      }
+      rescue => error
+        $stderr << "!!! #{error}\n"
+        $stderr << "#{error.backtrace.join("\n")}\n"
+
+        client_io.close
+        client_routine.finished
+      end
     end
   end
 
@@ -62,26 +68,30 @@ class Server
       routine.state[:delegate].reset
       routine.state[:parser].reset
       routine.finished
+    else
+      fail "tried to write but no data was available"
     end
   end
 
   def dispatch(routine:)
     writer = routine.state[:writer]
 
-    routine.bridge({mode: :sleep}, intent: :w, channel: writer) { |bridge_routine|
+    data = [
+      "HTTP/1.1 204 No Content\r\n",
+      "Content-Length: 0\r\n",
+      "\r\n"
+    ]
+
+    routine.bridge(intent: :w, channel: writer) { |bridge_routine|
       bridge_routine.debug = true
 
-      case bridge_routine.state[:mode]
-      when :sleep
-        bridge_routine.sleep(rand)
-        bridge_routine.state[:mode] = :write
-      else
-        bridge_routine << <<~RESPONSE
-          HTTP/1.1 204 No Content\r
-          Content-Length: 0\r
-          \r
-        RESPONSE
+      # Write data 5% of the time...
+      #
+      if rand(1..100) <= 5
+        bridge_routine << data.shift
+      end
 
+      if data.empty?
         bridge_routine.finished
         writer.close
       end

@@ -7,10 +7,12 @@ server.start
 
 sleep(1)
 
-puts "making requests..."
-puts "got: #{HTTP.get("http://localhost:4242").status}"
-puts "got: #{HTTP.get("http://localhost:4242").status}"
-puts "got: #{HTTP.get("http://localhost:4242").status}"
-
-puts "shutting down..."
-server.stop
+begin
+  puts "making requests..."
+  puts "got: #{HTTP.timeout(1).get("http://localhost:4242").status}"
+  puts "got: #{HTTP.timeout(1).get("http://localhost:4242").status}"
+  puts "got: #{HTTP.timeout(1).get("http://localhost:4242").status}"
+ensure
+  puts "shutting down..."
+  server.stop
+end

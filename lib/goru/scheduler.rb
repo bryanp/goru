@@ -4,6 +4,7 @@ require "etc"
 require "is/global"
 
 require_relative "channel"
+require_relative "io_event_loop"
 require_relative "reactor"
 require_relative "routines/channel"
 require_relative "routines/io"
@@ -16,7 +17,6 @@ module Goru
   #
   class Scheduler
     include Is::Global
-    include MonitorMixin
 
     class << self
       # Prevent issues when including `Goru` at the toplevel.
@@ -37,9 +37,9 @@ module Goru
     def initialize(count: self.class.default_scheduler_count)
       super()
 
-      @stopping = false
+      @stopped = false
       @routines = Thread::Queue.new
-      @condition = new_cond
+      @coordinator = Thread::Queue.new
 
       @reactors = count.times.map {
         Reactor.new(queue: @routines, scheduler: self)
@@ -52,6 +52,11 @@ module Goru
           end
         }
       }
+
+      @io_event_loop = IOEventLoop.new
+      @threads << Thread.new {
+        @io_event_loop.run
+      }
     end
 
     # [public]
@@ -60,7 +65,7 @@ module Goru
       raise ArgumentError, "cannot set both `io` and `channel`" if io && channel
 
       routine = if io
-        Routines::IO.new(state, io: io, intent: intent, &block)
+        Routines::IO.new(state, io: io, intent: intent, event_loop: @io_event_loop, &block)
       elsif channel
         case intent
         when :r
@@ -73,7 +78,7 @@ module Goru
       end
 
       @routines << routine
-      @reactors.each(&:signal)
+      @reactors.each(&:wakeup)
 
       routine
     end
@@ -81,10 +86,8 @@ module Goru
     # [public]
     #
     def wait
-      synchronize do
-        @condition.wait_until do
-          @stopping
-        end
+      until @stopped
+        @coordinator.pop
       end
     rescue Interrupt
     ensure
@@ -94,22 +97,25 @@ module Goru
     # [public]
     #
     def stop
-      @stopping = true
+      @stopped = true
       @routines.close
+      @io_event_loop.stop
       @reactors.each(&:stop)
       @threads.each(&:join)
     end
 
     # [public]
     #
-    def signal(reactor)
-      synchronize do
-        if @reactors.all?(&:finished?)
-          @stopping = true
-        end
-
-        @condition.signal
+    def signal
+      if @reactors.all?(&:finished?)
+        @stopped = true
       end
+
+      wakeup
+    end
+
+    def wakeup
+      @coordinator << :wakeup
     end
   end
 end
