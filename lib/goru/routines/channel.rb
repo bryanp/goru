@@ -12,6 +12,7 @@ module Goru
 
         @channel = channel
         @channel.add_observer(self)
+        update_status
       end
 
       private def status_changed

@@ -8,12 +8,6 @@ module Goru
       # [public]
       #
       class Readable < Channel
-        def initialize(...)
-          super
-
-          update_status
-        end
-
         # [public]
         #
         def read

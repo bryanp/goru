@@ -8,13 +8,13 @@ require "goru/scheduler"
 
 require_relative "../../support/delegate"
 
-class Server
+class NonBlockingServer
   def initialize
     @scheduler = Goru::Scheduler.new
   end
 
   def start
-    @scheduler.go(io: TCPServer.new("localhost", 4242), intent: :r) { |server_routine|
+    @routine = @scheduler.go(io: TCPServer.new("localhost", 4242), intent: :r) { |server_routine|
       if (client_io = server_routine.accept)
         state = {delegate: Delegate.new}
         state[:parser] = LLHttp::Parser.new(state[:delegate])
@@ -37,13 +37,13 @@ class Server
   end
 
   def stop
-    @scheduler.stop
+    @routine.finished
   end
 end
 
 RSpec.describe "using non-blocking io" do
   let(:server) {
-    Server.new
+    NonBlockingServer.new
   }
 
   it "handles io" do

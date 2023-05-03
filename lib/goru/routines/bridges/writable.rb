@@ -6,12 +6,6 @@ module Goru
   module Routines
     module Bridges
       class Writable < Bridge
-        def initialize(...)
-          super
-
-          update_status
-        end
-
         # [public]
         #
         def applicable?
