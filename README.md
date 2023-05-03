@@ -201,6 +201,34 @@ Goru::Scheduler.go(io: io, intent: :r) { |routine|
 }
 ```
 
+## Bridges
+
+Goru supports coordinates buffered io using bridges:
+
+```ruby
+writer = Goru::Channel.new
+
+Goru::Scheduler.go(io: io, intent: :r) { |routine|
+  case routine.intent
+  when :r
+    routine.bridge(intent: :w, channel: writer) { |bridge|
+      bridge << SecureRandom.hex
+    }
+  when :w
+    if (data = writer.read)
+      routine.write(data)
+    end
+  end
+}
+```
+
+Using bridges, the io routine is only called again when two conditions are met:
+
+1. The io object is writable.
+2. The channel has data available for reading.
+
+See the [server example](./examples/server.rb) for a more complete use-case.
+
 ## Credits
 
 Goru was designed while writing a project in Go and imagining what Go-like concurrency might look like in Ruby.
