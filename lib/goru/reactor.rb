@@ -36,9 +36,9 @@ module Goru
     # [public]
     #
     def run
-      until @stopped
-        set_status(:running)
+      set_status(:running)
 
+      until @stopped
         cleanup
 
         @routines.each do |routine|
@@ -100,6 +100,7 @@ module Goru
       set_status(:idle)
       @scheduler.signal(self)
       wait_for_routine
+      set_status(:running)
     end
 
     private def wait_for_selector(timeout = nil)
