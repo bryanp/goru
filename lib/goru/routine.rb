@@ -80,13 +80,9 @@ module Goru
     #
     def sleep(seconds)
       set_status(:idle)
-      @reactor.routine_asleep(self, seconds)
-    end
-
-    # [public]
-    #
-    def wake
-      set_status(:ready)
+      @reactor.asleep_for(seconds) do
+        set_status(:ready)
+      end
     end
 
     # [public]
