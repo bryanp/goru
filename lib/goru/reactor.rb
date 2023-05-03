@@ -175,9 +175,9 @@ module Goru
 
     # [public]
     #
-    def routine_asleep(routine, seconds)
+    def asleep_for(seconds)
       @timers.after(seconds) {
-        routine.wake
+        yield
       }
     end
 
