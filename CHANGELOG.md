@@ -2,6 +2,7 @@
 
 *unreleased*
 
+  * `dep` [#11](https://github.com/bryanp/goru/pull/11) Change responsibilities of routine sleep behavior to be more clear ([bryanp](https://github.com/bryanp))
   * `chg` [#10](https://github.com/bryanp/goru/pull/10) Optimize how reactor status is set ([bryanp](https://github.com/bryanp))
   * `chg` [#9](https://github.com/bryanp/goru/pull/9) Refactor bridges ([bryanp](https://github.com/bryanp))
   * `chg` [#8](https://github.com/bryanp/goru/pull/8) Cleanup finished routines on next tick ([bryanp](https://github.com/bryanp))
