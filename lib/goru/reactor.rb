@@ -104,6 +104,9 @@ module Goru
 
     private def wait_for_selector(timeout = nil)
       @selector.select(timeout) do |monitor|
+        # The routine is called directly rather than on the next tick of `run`.
+        # This works because io routines are not added to `@routines` like non-io routines are.
+        #
         monitor.value.call
       end
     end
