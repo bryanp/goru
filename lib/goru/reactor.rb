@@ -22,6 +22,11 @@ module Goru
       @stopped = false
       @status = nil
       @mutex = Mutex.new
+      @cleanup = {
+        bridges: [],
+        monitors: [],
+        routines: []
+      }
     end
 
     # [public]
@@ -33,6 +38,8 @@ module Goru
     def run
       until @stopped
         set_status(:running)
+
+        cleanup
 
         @routines.each do |routine|
           call_routine(routine)
@@ -73,6 +80,20 @@ module Goru
     ensure
       @selector.close
       set_status(:finished)
+    end
+
+    private def cleanup
+      while (routine = @cleanup[:bridges].shift)
+        @bridges.delete(routine)
+      end
+
+      while (routine = @cleanup[:monitors].shift)
+        routine.monitor.close
+      end
+
+      while (routine = @cleanup[:routines].shift)
+        @routines.delete(routine)
+      end
     end
 
     private def become_idle
@@ -173,14 +194,17 @@ module Goru
     # [public]
     #
     def routine_finished(routine)
-      case routine
+      cleanup_key = case routine
       when Routines::Bridge
-        @bridges.delete(routine)
+        :bridges
       when Routines::IO
-        @selector.deregister(routine.io)
+        :monitors
       else
-        @routines.delete(routine)
+        :routines
       end
+
+      @cleanup[cleanup_key] << routine
+      signal
     end
 
     private def set_status(status)

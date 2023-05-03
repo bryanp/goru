@@ -23,7 +23,7 @@ module Goru
       #
       attr_reader :io, :intent
 
-      attr_writer :monitor
+      attr_accessor :monitor
 
       # [public]
       #
