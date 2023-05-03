@@ -1,6 +1,13 @@
 ---
 - version: v0.3.0
   changes:
+  - id: 11
+    type: dep
+    summary: Change responsibilities of routine sleep behavior to be more clear
+    link: https://github.com/bryanp/goru/pull/11
+    author:
+      username: bryanp
+      link: https://github.com/bryanp
   - id: 10
     type: chg
     summary: Optimize how reactor status is set
