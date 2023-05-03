@@ -1,6 +1,13 @@
 ---
 - version: v0.3.0
   changes:
+  - id: 9
+    type: chg
+    summary: Refactor bridges
+    link: https://github.com/bryanp/goru/pull/9
+    author:
+      username: bryanp
+      link: https://github.com/bryanp
   - id: 8
     type: chg
     summary: Cleanup finished routines on next tick
