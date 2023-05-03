@@ -6,12 +6,6 @@ module Goru
   module Routines
     module Bridges
       class Readable < Bridge
-        def initialize(...)
-          super
-
-          update_status
-        end
-
         # [public]
         #
         def applicable?

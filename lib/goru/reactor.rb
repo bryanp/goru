@@ -68,7 +68,7 @@ module Goru
             if @selector.empty?
               wait_for_interval(interval)
             else
-              wait_for_bridge do
+              wait_for_bridge(interval) do
                 wait_for_selector(interval)
               end
             end
@@ -108,9 +108,13 @@ module Goru
       end
     end
 
-    private def wait_for_bridge
+    private def wait_for_bridge(interval = nil)
       if @bridges.any?(&:applicable?) && @bridges.none?(&:ready?)
-        wait_for_routine
+        if interval.nil?
+          wait_for_routine
+        elsif interval > 0
+          wait_for_interval(interval)
+        end
       else
         yield
       end

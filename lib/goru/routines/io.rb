@@ -81,9 +81,10 @@ module Goru
 
       # [public]
       #
-      def bridge(channel, intent:)
+      def bridge(state = nil, intent:, channel:, &block)
         intent = normalize_intent(intent)
         validate_intent!(intent)
+        self.intent = intent
 
         bridge = case intent
         when :r
@@ -94,7 +95,18 @@ module Goru
 
         on_finished { bridge.finished }
         @reactor.adopt_routine(bridge)
-        bridge
+
+        routine = case intent
+        when :r
+          Routines::Channels::Readable.new(state, channel: channel, &block)
+        when :w
+          Routines::Channels::Writable.new(state, channel: channel, &block)
+        end
+
+        @reactor.adopt_routine(routine)
+        @reactor.signal
+
+        routine
       end
 
       # [public]
