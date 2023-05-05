@@ -40,7 +40,6 @@ module Goru
         @monitor&.interests = nil
 
         set_status(:io_ready)
-        @reactor.wakeup
       end
 
       READY_STATUSES = [:io_ready, :ready].freeze
@@ -72,7 +71,7 @@ module Goru
 
       def wait
         set_status(:selecting)
-        @event_loop << [:register, self] unless @monitor
+        @reactor.register(self) unless @monitor
       end
 
       # [public]
@@ -154,8 +153,7 @@ module Goru
       private def status_changed
         case @status
         when :finished
-          @event_loop << [:deregister, self]
-          @bridge&.finished
+          @reactor.deregister(self)
         end
 
         super

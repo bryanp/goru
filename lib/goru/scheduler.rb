@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
 require "etc"
+require "nio"
 require "is/global"
 
 require_relative "channel"
-require_relative "io_event_loop"
 require_relative "reactor"
 require_relative "routines/channel"
 require_relative "routines/io"
@@ -39,7 +39,7 @@ module Goru
 
       @stopped = false
       @routines = Thread::Queue.new
-      @coordinator = Thread::Queue.new
+      @selector = NIO::Selector.new
 
       @reactors = count.times.map {
         Reactor.new(queue: @routines, scheduler: self)
@@ -51,11 +51,6 @@ module Goru
             reactor.run
           end
         }
-      }
-
-      @io_event_loop = IOEventLoop.new
-      @threads << Thread.new {
-        @io_event_loop.run
       }
     end
 
@@ -87,7 +82,7 @@ module Goru
     #
     def wait
       until @stopped
-        @coordinator.pop
+        @selector.select
       end
     rescue Interrupt
     ensure
@@ -99,7 +94,7 @@ module Goru
     def stop
       @stopped = true
       @routines.close
-      @io_event_loop.stop
+      @selector.close
       @reactors.each(&:stop)
       @threads.each(&:join)
     end
@@ -115,7 +110,7 @@ module Goru
     end
 
     def wakeup
-      @coordinator << :wakeup
+      @selector.wakeup rescue IOError
     end
   end
 end

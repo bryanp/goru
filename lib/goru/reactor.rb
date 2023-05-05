@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "nio"
 require "timers/group"
 require "timers/wait"
 
@@ -16,7 +17,7 @@ module Goru
       @timers = Timers::Group.new
       @stopped = false
       @status = nil
-      @coordinator = Thread::Queue.new
+      @selector = NIO::Selector.new
       @commands = []
     end
 
@@ -34,7 +35,7 @@ module Goru
       end
     ensure
       @timers.cancel
-      @coordinator.close
+      @selector.close
       set_status(:finished)
     end
 
@@ -51,6 +52,13 @@ module Goru
           routine.adopted
         when :cleanup
           @routines.delete(routine)
+        when :register
+          monitor = @selector.register(routine.io, routine.intent)
+          monitor.value = routine.method(:wakeup)
+          routine.monitor = monitor
+        when :deregister
+          routine.monitor&.close
+          routine.monitor = nil
         end
       end
 
@@ -76,19 +84,15 @@ module Goru
       elsif interval.nil?
         wait unless @routines.any?(&:ready?)
       elsif interval > 0
-        Timers::Wait.for(interval) do |remaining|
-          break if wait(timeout: remaining)
-        end
+        wait(timeout: interval)
       end
 
       @timers.fire
     end
 
     private def wait(timeout: nil)
-      if timeout
-        @coordinator.pop(timeout: timeout)
-      else
-        @coordinator.pop
+      @selector.select(timeout) do |monitor|
+        monitor.value.call
       end
     end
 
@@ -101,8 +105,7 @@ module Goru
     # [public]
     #
     def wakeup
-      @coordinator << :wakeup
-    rescue ClosedQueueError
+      @selector.wakeup rescue IOError
     end
 
     # [public]
@@ -132,6 +135,18 @@ module Goru
     #
     def routine_finished(routine)
       command(:cleanup, routine)
+    end
+
+    # [public]
+    #
+    def register(routine)
+      command(:register, routine)
+    end
+
+    # [public]
+    #
+    def deregister(routine)
+      command(:deregister, routine)
     end
 
     private def command(action, routine)
