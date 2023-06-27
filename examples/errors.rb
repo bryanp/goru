@@ -13,21 +13,13 @@ class Errored
         puts "!!! #{event}"
       end
 
-      begin
-        fail "[custom] something went wrong: #{SecureRandom.hex}"
-      ensure
-        routine.finished
-      end
+      fail "[custom] something went wrong: #{SecureRandom.hex}"
     }
 
     # Default error handler.
     #
     go { |routine|
-      begin
-        fail "[default] something went wrong: #{SecureRandom.hex}"
-      ensure
-        routine.finished
-      end
+      fail "[default] something went wrong: #{SecureRandom.hex}"
     }
   end
 end

@@ -30,8 +30,8 @@ class Writer
     go(:sleep, channel: channel, intent: :w) { |routine|
       case routine.state
       when :sleep
-        routine.sleep(rand)
         routine.update(:write)
+        routine.sleep(rand)
       when :write
         if (value = values.shift)
           routine << value

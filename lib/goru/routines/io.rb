@@ -63,7 +63,6 @@ module Goru
         @io.accept_nonblock
       rescue Errno::EAGAIN
         wait
-        nil
       rescue Errno::ECONNRESET, Errno::EPIPE, EOFError
         finished
         nil
@@ -72,6 +71,8 @@ module Goru
       def wait
         set_status(:selecting)
         @reactor.register(self) unless @monitor
+
+        throw :continue
       end
 
       # [public]
@@ -80,7 +81,6 @@ module Goru
         @io.read_nonblock(bytes)
       rescue Errno::EAGAIN
         wait
-        nil
       rescue Errno::ECONNRESET, Errno::EPIPE, EOFError
         finished
         nil
@@ -92,7 +92,6 @@ module Goru
         @io.write_nonblock(data)
       rescue Errno::EAGAIN
         wait
-        nil
       rescue Errno::ECONNRESET, Errno::EPIPE, EOFError
         finished
         nil
@@ -153,7 +152,7 @@ module Goru
       private def status_changed
         case @status
         when :finished
-          @reactor.deregister(self)
+          @reactor&.deregister(self)
         end
 
         super

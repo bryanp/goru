@@ -23,8 +23,8 @@ RSpec.describe "clearing a channel" do
         routine.finished if channel.empty?
         routine.update(:sleep)
       when :sleep
-        routine.sleep(0.1)
         routine.update(:read)
+        routine.sleep(0.1)
       end
     }
 

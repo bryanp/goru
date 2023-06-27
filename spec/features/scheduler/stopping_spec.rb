@@ -11,8 +11,8 @@ RSpec.describe "stopping the scheduler" do
     values = []
 
     scheduler.go { |routine|
-      routine.sleep(0.1)
       values << rand
+      routine.sleep(0.1)
     }
 
     scheduler.stop
