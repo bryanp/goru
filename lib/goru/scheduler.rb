@@ -37,6 +37,7 @@ module Goru
     def initialize(count: self.class.default_scheduler_count)
       super()
 
+      @waiting = false
       @stopped = false
       @routines = Thread::Queue.new
       @selector = NIO::Selector.new
@@ -81,10 +82,11 @@ module Goru
     # [public]
     #
     def wait
-      until @stopped
-        @selector.select
-      end
+      @waiting = true
+      @reactors.each(&:wakeup)
+      @selector.select while @waiting
     rescue Interrupt
+      # nothing to do
     ensure
       stop
     end
@@ -102,10 +104,8 @@ module Goru
     # [public]
     #
     def signal
-      if @reactors.all?(&:finished?)
-        @stopped = true
-      end
-
+      return unless @waiting && @reactors.all?(&:finished?)
+      @waiting = false
       wakeup
     end
 
