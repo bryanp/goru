@@ -105,7 +105,9 @@ module Goru
     # [public]
     #
     def wakeup
-      @selector.wakeup rescue IOError
+      @selector.wakeup
+    rescue IOError
+      # nothing to do
     end
 
     # [public]
