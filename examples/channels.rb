@@ -37,7 +37,9 @@ class Writer
           routine << value
           routine.update(:sleep)
           puts "wrote: #{value}"
-        else
+        end
+
+        if values.empty?
           channel.close
           routine.finished
         end
@@ -55,7 +57,7 @@ start = Time.now
 loop do
   if reader.received == writer.writable
     break
-  elsif Time.now - start > 5
+  elsif Time.now - start > 10
     fail "timed out"
   else
     sleep(0.1)

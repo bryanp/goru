@@ -14,7 +14,9 @@ class NonBlockingServer
   end
 
   def start
-    @routine = @scheduler.go(io: TCPServer.new("localhost", 4242), intent: :r) { |server_routine|
+    @server = TCPServer.new("localhost", 4243)
+
+    @routine = @scheduler.go(io: @server, intent: :r) { |server_routine|
       if (client_io = server_routine.accept)
         state = {delegate: Delegate.new}
         state[:parser] = LLHttp::Parser.new(state[:delegate])
@@ -29,6 +31,7 @@ class NonBlockingServer
 
               client_routine.state[:delegate].reset
               client_routine.state[:parser].reset
+              client_routine.finished
             end
           end
         }
@@ -38,6 +41,8 @@ class NonBlockingServer
 
   def stop
     @routine.finished
+    @scheduler.stop
+    @server.close
   end
 end
 
@@ -53,7 +58,7 @@ RSpec.describe "using non-blocking io" do
     sleep(0.25)
 
     statuses = 100.times.map {
-      HTTP.get("http://localhost:4242").status.to_i
+      HTTP.get("http://localhost:4243").status.to_i
     }
 
     server.stop

@@ -1,11 +1,8 @@
 # frozen_string_literal: true
 
-require "nio"
-
 require "timers/group"
 require "timers/wait"
 
-require_relative "routines/bridge"
 require_relative "routines/io"
 
 module Goru
@@ -16,17 +13,11 @@ module Goru
       @queue = queue
       @scheduler = scheduler
       @routines = Set.new
-      @bridges = Set.new
       @timers = Timers::Group.new
-      @selector = NIO::Selector.new
       @stopped = false
       @status = nil
-      @mutex = Mutex.new
-      @cleanup = {
-        bridges: [],
-        monitors: [],
-        routines: []
-      }
+      @coordinator = Thread::Queue.new
+      @commands = []
     end
 
     # [public]
@@ -39,138 +30,88 @@ module Goru
       set_status(:running)
 
       until @stopped
-        cleanup
-
-        @routines.each do |routine|
-          call_routine(routine)
-        end
-
-        begin
-          wait_for_routine(block: false)
-        rescue ThreadError
-          interval = @timers.wait_interval
-
-          if interval.nil?
-            if @routines.empty?
-              if @selector.empty?
-                become_idle
-              else
-                wait_for_bridge do
-                  wait_for_selector
-                end
-              end
-            else
-              wait_for_bridge do
-                wait_for_selector(0)
-              end
-            end
-          elsif interval > 0
-            if @selector.empty?
-              wait_for_interval(interval)
-            else
-              wait_for_bridge(interval) do
-                wait_for_selector(interval)
-              end
-            end
-          end
-
-          @timers.fire
-        end
+        tick
       end
     ensure
-      @selector.close
+      @timers.cancel
+      @coordinator.close
       set_status(:finished)
     end
 
-    private def cleanup
-      while (routine = @cleanup[:bridges].shift)
-        @bridges.delete(routine)
-      end
+    private def tick
+      # Apply queued commands.
+      #
+      while (command = @commands.shift)
+        action, routine = command
 
-      while (routine = @cleanup[:monitors].shift)
-        routine.monitor.close
-      end
-
-      while (routine = @cleanup[:routines].shift)
-        @routines.delete(routine)
-      end
-    end
-
-    private def become_idle
-      set_status(:idle)
-      @scheduler.signal(self)
-      wait_for_routine
-      set_status(:running)
-    end
-
-    private def wait_for_selector(timeout = nil)
-      @selector.select(timeout) do |monitor|
-        # The routine is called directly rather than on the next tick of `run`.
-        # This works because io routines are not added to `@routines` like non-io routines are.
-        #
-        monitor.value.call
-      end
-    end
-
-    private def wait_for_bridge(interval = nil)
-      if @bridges.any?(&:applicable?) && @bridges.none?(&:ready?)
-        if interval.nil?
-          wait_for_routine
-        elsif interval > 0
-          wait_for_interval(interval)
+        case action
+        when :adopt
+          routine.reactor = self
+          @routines << routine
+          routine.adopted
+        when :cleanup
+          @routines.delete(routine)
         end
-      else
-        yield
       end
-    end
 
-    private def wait_for_interval(timeout)
-      Timers::Wait.for(timeout) do |remaining|
-        break if wait_for_routine(timeout: remaining)
-      rescue ThreadError
-        # nothing to do
+      # Call each ready routine.
+      #
+      @routines.each do |routine|
+        routine.call if routine.ready?
       end
-    end
 
-    private def wait_for_routine(block: true, timeout: nil)
-      if timeout
-        if (routine = @queue.pop(timeout: timeout))
-          adopt_routine(routine)
-        end
-      elsif (routine = @queue.pop(!block))
+      # Adopt a new routine if available.
+      #
+      if (routine = @queue.pop(true))
         adopt_routine(routine)
+      end
+    rescue ThreadError
+      interval = @timers.wait_interval
+
+      if interval.nil? && @routines.empty?
+        set_status(:idle)
+        @scheduler.signal
+        wait
+        set_status(:running)
+      elsif interval.nil?
+        wait unless @routines.any?(&:ready?)
+      elsif interval > 0
+        Timers::Wait.for(interval) do |remaining|
+          break if wait(timeout: remaining)
+        end
+      end
+
+      @timers.fire
+    end
+
+    private def wait(timeout: nil)
+      if timeout
+        @coordinator.pop(timeout: timeout)
+      else
+        @coordinator.pop
       end
     end
 
     # [public]
     #
     def finished?
-      @mutex.synchronize do
-        @status == :idle || @status == :stopped
-      end
-    end
-
-    # [public]
-    #
-    def signal
-      unless @selector.empty?
-        @selector.wakeup
-      end
+      @status == :idle || @status == :stopped
     end
 
     # [public]
     #
     def wakeup
-      signal
-      @queue << :wakeup
+      @coordinator << :wakeup
+    rescue ClosedQueueError
     end
 
     # [public]
     #
     def stop
       @stopped = true
-      @selector.wakeup
-    rescue IOError
+      wakeup
+    rescue ClosedQueueError
+      # nothing to do
     end
 
     # [public]
@@ -184,48 +125,22 @@ module Goru
     # [public]
     #
     def adopt_routine(routine)
-      case routine
-      when Routines::IO
-        monitor = @selector.register(routine.io, routine.intent)
-        monitor.value = routine
-        routine.monitor = monitor
-        routine.reactor = self
-      when Routines::Bridge
-        routine.reactor = self
-        @bridges << routine
-      when Routine
-        routine.reactor = self
-        @routines << routine
-      end
+      command(:adopt, routine)
     end
 
     # [public]
     #
     def routine_finished(routine)
-      cleanup_key = case routine
-      when Routines::Bridge
-        :bridges
-      when Routines::IO
-        :monitors
-      else
-        :routines
-      end
+      command(:cleanup, routine)
+    end
 
-      @cleanup[cleanup_key] << routine
-      signal
+    private def command(action, routine)
+      @commands << [action, routine]
+      wakeup
     end
 
     private def set_status(status)
-      @mutex.synchronize do
-        @status = status
-      end
-    end
-
-    private def call_routine(routine)
-      case routine.status
-      when :ready
-        routine.call
-      end
+      @status = status
     end
   end
 end

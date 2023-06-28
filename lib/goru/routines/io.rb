@@ -1,22 +1,22 @@
 # frozen_string_literal: true
 
 require_relative "../routine"
-require_relative "bridges/readable"
-require_relative "bridges/writable"
+require_relative "../bridges/readable"
+require_relative "../bridges/writable"
 
 module Goru
   module Routines
     # [public]
     #
     class IO < Routine
-      def initialize(state = nil, io:, intent:, &block)
+      def initialize(state = nil, io:, intent:, event_loop:, &block)
         super(state, &block)
 
         @io = io
         @intent = normalize_intent(intent)
-        @status = :selecting
+        @event_loop = event_loop
+        @status = :orphaned
         @monitor = nil
-        @finishers = []
       end
 
       # [public]
@@ -27,25 +27,62 @@ module Goru
 
       # [public]
       #
+      def adopted
+        set_status(:ready)
+      end
+
+      # [public]
+      #
+      def wakeup
+        # Keep this io from being selected again until the underlying routine is called.
+        # Interests are reset in `#call`.
+        #
+        @monitor&.interests = nil
+
+        set_status(:io_ready)
+        @reactor.wakeup
+      end
+
+      READY_STATUSES = [:io_ready, :ready].freeze
+      READY_BRIDGE_STATUSES = [nil, :ready].freeze
+
+      # [public]
+      #
+      def ready?
+        READY_STATUSES.include?(@status) && READY_BRIDGE_STATUSES.include?(@bridge&.status)
+      end
+
+      def call
+        super
+
+        @monitor&.interests = @intent
+      end
+
+      # [public]
+      #
       def accept
         @io.accept_nonblock
+      rescue Errno::EAGAIN
+        wait
+        nil
+      rescue Errno::ECONNRESET, Errno::EPIPE, EOFError
+        finished
+        nil
+      end
+
+      def wait
+        set_status(:selecting)
+        @event_loop << [:register, self] unless @monitor
       end
 
       # [public]
       #
       def read(bytes)
-        result = @io.read_nonblock(bytes, exception: false)
-
-        case result
-        when nil
-          finished
-          nil
-        when :wait_readable
-          # nothing to do
-        else
-          result
-        end
-      rescue Errno::ECONNRESET
+        @io.read_nonblock(bytes)
+      rescue Errno::EAGAIN
+        wait
+        nil
+      rescue Errno::ECONNRESET, Errno::EPIPE, EOFError
         finished
         nil
       end
@@ -53,18 +90,11 @@ module Goru
       # [public]
       #
       def write(data)
-        result = @io.write_nonblock(data, exception: false)
-
-        case result
-        when nil
-          finished
-          nil
-        when :wait_writable
-          # nothing to do
-        else
-          result
-        end
-      rescue Errno::ECONNRESET
+        @io.write_nonblock(data)
+      rescue Errno::EAGAIN
+        wait
+        nil
+      rescue Errno::ECONNRESET, Errno::EPIPE, EOFError
         finished
         nil
       end
@@ -75,26 +105,25 @@ module Goru
         intent = normalize_intent(intent)
         validate_intent!(intent)
 
-        @monitor.interests = intent
+        @monitor&.interests = intent
         @intent = intent
       end
 
       # [public]
       #
       def bridge(state = nil, intent:, channel:, &block)
+        raise "routine is already bridged" if @bridge
+
         intent = normalize_intent(intent)
         validate_intent!(intent)
         self.intent = intent
 
-        bridge = case intent
+        @bridge = case intent
         when :r
           Bridges::Readable.new(routine: self, channel: channel)
         when :w
           Bridges::Writable.new(routine: self, channel: channel)
         end
-
-        on_finished { bridge.finished }
-        @reactor.adopt_routine(bridge)
 
         routine = case intent
         when :r
@@ -104,21 +133,29 @@ module Goru
         end
 
         @reactor.adopt_routine(routine)
-        @reactor.signal
+        @reactor.wakeup
 
         routine
       end
 
       # [public]
       #
-      def on_finished(&block)
-        @finishers << block
+      def bridged
+        @reactor.wakeup
+      end
+
+      # [public]
+      #
+      def unbridge
+        @bridge = nil
+        @reactor.wakeup
       end
 
       private def status_changed
         case @status
         when :finished
-          @finishers.each(&:call)
+          @event_loop << [:deregister, self]
+          @bridge&.finished
         end
 
         super

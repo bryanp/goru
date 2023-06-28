@@ -203,7 +203,7 @@ Goru::Scheduler.go(io: io, intent: :r) { |routine|
 
 ## Bridges
 
-Goru supports coordinates buffered io using bridges:
+Goru supports coordinated buffered io using bridges:
 
 ```ruby
 writer = Goru::Channel.new
@@ -224,8 +224,8 @@ Goru::Scheduler.go(io: io, intent: :r) { |routine|
 
 Using bridges, the io routine is only called again when two conditions are met:
 
-1. The io object is writable.
-2. The channel has data available for reading.
+1. The io object matches the bridged intent (e.g. it is writable).
+2. The channel is in the correct state to reciprocate the intent (e.g. it has data).
 
 See the [server example](./examples/server.rb) for a more complete use-case.
 
