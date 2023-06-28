@@ -2,6 +2,7 @@
 
 *unreleased*
 
+  * `chg` [#12](https://github.com/bryanp/goru/pull/12) Refactor bridges (again) ([bryanp](https://github.com/bryanp))
   * `dep` [#11](https://github.com/bryanp/goru/pull/11) Change responsibilities of routine sleep behavior to be more clear ([bryanp](https://github.com/bryanp))
   * `chg` [#10](https://github.com/bryanp/goru/pull/10) Optimize how reactor status is set ([bryanp](https://github.com/bryanp))
   * `chg` [#9](https://github.com/bryanp/goru/pull/9) Refactor bridges ([bryanp](https://github.com/bryanp))
