@@ -2,6 +2,7 @@
 
 *unreleased*
 
+  * `chg` [#15](https://github.com/bryanp/goru/pull/15) Rename `default_scheduler_count` ([bryanp](https://github.com/bryanp))
   * `chg` [#14](https://github.com/bryanp/goru/pull/14) Improve cold start of scheduler ([bryanp](https://github.com/bryanp))
   * `chg` [#13](https://github.com/bryanp/goru/pull/13) Go back to selector-based reactor ([bryanp](https://github.com/bryanp))
   * `chg` [#12](https://github.com/bryanp/goru/pull/12) Refactor bridges (again) ([bryanp](https://github.com/bryanp))
