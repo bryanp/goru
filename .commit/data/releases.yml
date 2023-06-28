@@ -1,6 +1,13 @@
 ---
 - version: v0.3.0
   changes:
+  - id: 15
+    type: chg
+    summary: Rename `default_scheduler_count`
+    link: https://github.com/bryanp/goru/pull/15
+    author:
+      username: bryanp
+      link: https://github.com/bryanp
   - id: 14
     type: chg
     summary: Improve cold start of scheduler
