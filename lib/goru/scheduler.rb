@@ -85,7 +85,7 @@ module Goru
       @waiting = true
       @reactors.each(&:wakeup)
       @selector.select while @waiting
-    rescue Interrupt
+    rescue IOError, Interrupt
       # nothing to do
     ensure
       stop
@@ -110,7 +110,9 @@ module Goru
     end
 
     def wakeup
-      @selector.wakeup rescue IOError
+      @selector.wakeup
+    rescue IOError
+      # nothing to do
     end
   end
 end
