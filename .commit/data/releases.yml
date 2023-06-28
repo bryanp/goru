@@ -1,6 +1,13 @@
 ---
 - version: v0.3.0
   changes:
+  - id: 17
+    type: fix
+    summary: Handle `IOError` from closed selector
+    link: https://github.com/bryanp/goru/pull/17
+    author:
+      username: bryanp
+      link: https://github.com/bryanp
   - id: 15
     type: chg
     summary: Rename `default_scheduler_count`
