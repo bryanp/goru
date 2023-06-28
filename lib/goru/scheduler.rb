@@ -29,12 +29,12 @@ module Goru
 
       # [public]
       #
-      def default_scheduler_count
+      def default_reactor_count
         Etc.nprocessors
       end
     end
 
-    def initialize(count: self.class.default_scheduler_count)
+    def initialize(count: self.class.default_reactor_count)
       super()
 
       @waiting = false
