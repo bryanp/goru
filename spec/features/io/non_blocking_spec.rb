@@ -40,7 +40,6 @@ class NonBlockingServer
   end
 
   def stop
-    @routine.finished
     @scheduler.stop
     @server.close
   end

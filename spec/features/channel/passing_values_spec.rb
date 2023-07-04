@@ -31,8 +31,8 @@ RSpec.describe "passing values through a channel" do
           routine.finished
         end
       when :sleep
-        routine.sleep(rand / 100)
         routine.update(:write)
+        routine.sleep(rand / 100)
       end
     }
 

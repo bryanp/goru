@@ -10,10 +10,14 @@ require_relative "../../lib/goru"
 class Server
   include Goru
 
+  def initialize
+    @scheduler = Goru::Scheduler.new
+  end
+
   def start
     @server = TCPServer.new("localhost", 4242)
 
-    @routine = go(io: @server, intent: :r) { |server_routine|
+    @routine = @scheduler.go(io: @server, intent: :r) { |server_routine|
       server_routine.debug = true
 
       accept(routine: server_routine)
@@ -21,8 +25,8 @@ class Server
   end
 
   def stop
+    @scheduler.stop
     @server.close
-    @routine.finished
   end
 
   def accept(routine:)
@@ -32,7 +36,7 @@ class Server
       writer = Goru::Channel.new
       state = {delegate: delegate, parser: parser, writer: writer}
 
-      go(state, io: client_io, intent: :r) do |client_routine|
+      @scheduler.go(state, io: client_io, intent: :r) do |client_routine|
         client_routine.debug = true
 
         case client_routine.intent

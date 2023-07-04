@@ -11,11 +11,16 @@ RSpec.describe "waiting on the scheduler" do
     values = []
     slept_at = nil
 
-    scheduler.go { |routine|
-      slept_at = Time.now
-      routine.sleep(0.1)
-      values << rand
-      routine.finished
+    scheduler.go(:sleep) { |routine|
+      case routine.state
+      when :sleep
+        slept_at = Time.now
+        values << rand
+        routine.update(:finished)
+        routine.sleep(0.1)
+      when :finished
+        routine.finished
+      end
     }
 
     scheduler.wait

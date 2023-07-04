@@ -53,10 +53,10 @@ module Goru
     # [public]
     #
     def finished(result = nil)
-      unless @finished
-        @result = result
-        set_status(:finished)
-      end
+      @result = result
+      set_status(:finished)
+
+      throw :continue
     end
 
     # [public]
@@ -83,6 +83,8 @@ module Goru
       @reactor.asleep_for(seconds) do
         set_status(:ready)
       end
+
+      throw :continue
     end
 
     # [public]

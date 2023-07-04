@@ -54,8 +54,8 @@ RSpec.describe "closing a channel" do
         routine << rand
         routine.update(:sleep)
       when :sleep
-        routine.sleep(rand / 100)
         routine.update(:write)
+        routine.sleep(rand / 100)
       end
     }
 

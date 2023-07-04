@@ -23,8 +23,8 @@ RSpec.describe "using channels as buffers" do
         routine.finished if received.count == count
         routine.update(:sleep)
       when :sleep
-        routine.sleep(rand / 100)
         routine.update(:read)
+        routine.sleep(rand / 100)
       end
     }
 

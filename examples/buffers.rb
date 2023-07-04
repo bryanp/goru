@@ -13,8 +13,8 @@ class Reader
     go(:sleep, channel: channel, intent: :r) { |routine|
       case routine.state
       when :sleep
-        routine.sleep(rand)
         routine.update(:read)
+        routine.sleep(rand)
       when :read
         if (value = routine.read)
           @received << value

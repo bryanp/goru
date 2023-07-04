@@ -65,7 +65,11 @@ module Goru
       # Call each ready routine.
       #
       @routines.each do |routine|
-        routine.call if routine.ready?
+        next unless routine.ready?
+
+        catch :continue do
+          routine.call
+        end
       end
 
       # Adopt a new routine if available.

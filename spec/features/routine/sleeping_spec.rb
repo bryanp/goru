@@ -10,10 +10,15 @@ RSpec.describe "sleeping in a routine" do
   it "sleeps" do
     slept_at = nil
 
-    scheduler.go { |routine|
-      slept_at = Time.now
-      routine.sleep(0.1)
-      routine.finished
+    scheduler.go(:sleep) { |routine|
+      case routine.state
+      when :sleep
+        slept_at = Time.now
+        routine.update(:finished)
+        routine.sleep(0.1)
+      when :finished
+        routine.finished
+      end
     }
 
     scheduler.wait
