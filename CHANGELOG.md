@@ -2,6 +2,7 @@
 
 *unreleased*
 
+  * `chg` [#16](https://github.com/bryanp/goru/pull/16) Improve control flow ([bryanp](https://github.com/bryanp))
   * `fix` [#17](https://github.com/bryanp/goru/pull/17) Handle `IOError` from closed selector ([bryanp](https://github.com/bryanp))
   * `chg` [#15](https://github.com/bryanp/goru/pull/15) Rename `default_scheduler_count` ([bryanp](https://github.com/bryanp))
   * `chg` [#14](https://github.com/bryanp/goru/pull/14) Improve cold start of scheduler ([bryanp](https://github.com/bryanp))
