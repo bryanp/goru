@@ -1,6 +1,13 @@
 ---
 - version: v0.3.0
   changes:
+  - id: 16
+    type: chg
+    summary: Improve control flow
+    link: https://github.com/bryanp/goru/pull/16
+    author:
+      username: bryanp
+      link: https://github.com/bryanp
   - id: 17
     type: fix
     summary: Handle `IOError` from closed selector
