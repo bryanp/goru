@@ -1,5 +1,7 @@
 ---
 - version: v0.3.0
+  date: '2023-07-10'
+  link: https://github.com/bryanp/goru/releases/tag/v0.3.0
   changes:
   - id: 16
     type: chg
