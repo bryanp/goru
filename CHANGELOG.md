@@ -1,6 +1,6 @@
-## v0.3.0
+## [v0.3.0](https://github.com/bryanp/goru/releases/tag/v0.3.0)
 
-*unreleased*
+*released on 2023-07-10*
 
   * `chg` [#16](https://github.com/bryanp/goru/pull/16) Improve control flow ([bryanp](https://github.com/bryanp))
   * `fix` [#17](https://github.com/bryanp/goru/pull/17) Handle `IOError` from closed selector ([bryanp](https://github.com/bryanp))
