@@ -96,6 +96,12 @@ module Goru
 
     # [public]
     #
+    def finished?
+      @status == :errored || @status == :finished
+    end
+
+    # [public]
+    #
     def pause
       set_status(:paused)
     end
