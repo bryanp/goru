@@ -21,10 +21,30 @@ module Goru
       @state = state
       @block = block
       @observers = Set.new
-      set_status(:ready)
+      set_status(STATUS_READY)
       @result, @error, @reactor = nil
       @debug = true
     end
+
+    # [public]
+    #
+    STATUS_READY = :ready
+
+    # [public]
+    #
+    STATUS_FINISHED = :finished
+
+    # [public]
+    #
+    STATUS_ERRORED = :errored
+
+    # [public]
+    #
+    STATUS_IDLE = :idle
+
+    # [public]
+    #
+    STATUS_PAUSED = :paused
 
     # [public]
     #
@@ -47,7 +67,7 @@ module Goru
       @block.call(self)
     rescue => error
       @error = error
-      set_status(:errored)
+      set_status(STATUS_ERRORED)
       trigger(error)
     end
 
@@ -55,7 +75,7 @@ module Goru
     #
     def finished(result = nil)
       @result = result
-      set_status(:finished)
+      set_status(STATUS_FINISHED)
 
       throw :continue
     end
@@ -70,7 +90,7 @@ module Goru
     #
     def result
       case @status
-      when :errored
+      when STATUS_ERRORED
         raise @error
       else
         @result
@@ -80,9 +100,9 @@ module Goru
     # [public]
     #
     def sleep(seconds)
-      set_status(:idle)
+      set_status(STATUS_IDLE)
       @reactor.asleep_for(seconds) do
-        set_status(:ready)
+        set_status(STATUS_READY)
       end
 
       throw :continue
@@ -91,25 +111,25 @@ module Goru
     # [public]
     #
     def ready?
-      @status == :ready
+      @status == STATUS_READY
     end
 
     # [public]
     #
     def finished?
-      @status == :errored || @status == :finished
+      @status == STATUS_ERRORED || @status == STATUS_FINISHED
     end
 
     # [public]
     #
     def pause
-      set_status(:paused)
+      set_status(STATUS_PAUSED)
     end
 
     # [public]
     #
     def resume
-      set_status(:ready)
+      set_status(STATUS_READY)
     end
 
     # [public]
@@ -125,7 +145,7 @@ module Goru
       @observers.each(&:call)
 
       case @status
-      when :errored, :finished
+      when STATUS_ERRORED, STATUS_FINISHED
         @reactor&.routine_finished(self)
       end
     end

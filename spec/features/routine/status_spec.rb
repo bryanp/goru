@@ -13,7 +13,7 @@ RSpec.describe "routine status" do
         routine.finished
       }
 
-      expect(scheduled_routine.status).to eq(:ready)
+      expect(scheduled_routine.status).to eq(Goru::Routine::STATUS_READY)
     end
   end
 
@@ -31,7 +31,7 @@ RSpec.describe "routine status" do
 
       sleep(0.1)
 
-      expect(scheduled_routine.status).to eq(:idle)
+      expect(scheduled_routine.status).to eq(Goru::Routine::STATUS_IDLE)
     end
   end
 
@@ -44,7 +44,7 @@ RSpec.describe "routine status" do
 
       scheduler.wait
 
-      expect(scheduled_routine.status).to eq(:errored)
+      expect(scheduled_routine.status).to eq(Goru::Routine::STATUS_ERRORED)
     end
   end
 
@@ -56,7 +56,7 @@ RSpec.describe "routine status" do
 
       scheduler.wait
 
-      expect(scheduled_routine.status).to eq(:finished)
+      expect(scheduled_routine.status).to eq(Goru::Routine::STATUS_FINISHED)
     end
   end
 end

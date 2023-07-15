@@ -23,12 +23,28 @@ module Goru
 
     # [public]
     #
+    STATUS_RUNNING = :running
+
+    # [public]
+    #
+    STATUS_FINISHED = :finished
+
+    # [public]
+    #
+    STATUS_IDLE = :idle
+
+    # [public]
+    #
+    STATUS_STOPPED = :stopped
+
+    # [public]
+    #
     attr_reader :status
 
     # [public]
     #
     def run
-      set_status(:running)
+      set_status(STATUS_RUNNING)
 
       until @stopped
         tick
@@ -36,7 +52,7 @@ module Goru
     ensure
       @timers.cancel
       @selector.close
-      set_status(:finished)
+      set_status(STATUS_FINISHED)
     end
 
     private def tick
@@ -81,10 +97,10 @@ module Goru
       interval = @timers.wait_interval
 
       if interval.nil? && @routines.empty?
-        set_status(:idle)
+        set_status(STATUS_IDLE)
         @scheduler.signal
         wait
-        set_status(:running)
+        set_status(STATUS_RUNNING)
       elsif interval.nil?
         wait unless @routines.any?(&:ready?)
       elsif interval > 0
@@ -103,7 +119,7 @@ module Goru
     # [public]
     #
     def finished?
-      @status == :idle || @status == :stopped
+      @status == STATUS_IDLE || @status == STATUS_STOPPED
     end
 
     # [public]

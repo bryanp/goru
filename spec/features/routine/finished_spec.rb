@@ -55,7 +55,7 @@ RSpec.describe "checking if a routine is finished" do
 
     routine.add_observer do
       case routine.status
-      when :idle
+      when Goru::Routine::STATUS_IDLE
         @finished_when_idle = routine.finished?
       end
     end

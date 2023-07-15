@@ -6,14 +6,14 @@ module Goru
   module Bridges
     class Writable < Bridge
       private def update_status
-        status = if @routine.status == :finished
-          :finished
+        status = if @routine.status == Routine::STATUS_FINISHED
+          Bridge::STATUS_FINISHED
         elsif @channel.any?
-          :ready
+          Bridge::STATUS_READY
         elsif @channel.closed?
-          :finished
+          Bridge::STATUS_FINISHED
         else
-          :idle
+          Bridge::STATUS_IDLE
         end
 
         set_status(status)

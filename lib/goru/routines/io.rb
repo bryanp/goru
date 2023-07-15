@@ -21,6 +21,10 @@ module Goru
 
       # [public]
       #
+      STATUS_IO_READY = :io_ready
+
+      # [public]
+      #
       attr_reader :io, :intent
 
       attr_accessor :monitor
@@ -28,7 +32,7 @@ module Goru
       # [public]
       #
       def adopted
-        set_status(:ready)
+        set_status(Routine::STATUS_READY)
       end
 
       # [public]
@@ -39,11 +43,11 @@ module Goru
         #
         @monitor&.interests = nil
 
-        set_status(:io_ready)
+        set_status(STATUS_IO_READY)
       end
 
-      READY_STATUSES = [:io_ready, :ready].freeze
-      READY_BRIDGE_STATUSES = [nil, :ready].freeze
+      READY_STATUSES = [STATUS_IO_READY, Routine::STATUS_READY].freeze
+      READY_BRIDGE_STATUSES = [nil, Bridge::STATUS_READY].freeze
 
       # [public]
       #
@@ -151,7 +155,7 @@ module Goru
 
       private def status_changed
         case @status
-        when :finished
+        when Routine::STATUS_FINISHED
           @reactor&.deregister(self)
         end
 
