@@ -95,6 +95,18 @@ module Goru
 
     # [public]
     #
+    def pause
+      set_status(:paused)
+    end
+
+    # [public]
+    #
+    def resume
+      set_status(:ready)
+    end
+
+    # [public]
+    #
     private def set_status(status)
       @status = status
       status_changed
