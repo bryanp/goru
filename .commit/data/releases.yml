@@ -1,4 +1,13 @@
 ---
+- version: v0.4.0
+  changes:
+  - id: 18
+    type: chg
+    summary: Remove the unused `observer` writer from `Goru::Channel`
+    link: https://github.com/bryanp/goru/pull/18
+    author:
+      username: bryanp
+      link: https://github.com/bryanp
 - version: v0.3.0
   date: '2023-07-10'
   link: https://github.com/bryanp/goru/releases/tag/v0.3.0
