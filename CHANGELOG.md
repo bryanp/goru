@@ -1,3 +1,9 @@
+## v0.4.0
+
+*unreleased*
+
+  * `chg` [#18](https://github.com/bryanp/goru/pull/18) Remove the unused `observer` writer from `Goru::Channel` ([bryanp](https://github.com/bryanp))
+
 ## [v0.3.0](https://github.com/bryanp/goru/releases/tag/v0.3.0)
 
 *released on 2023-07-10*
