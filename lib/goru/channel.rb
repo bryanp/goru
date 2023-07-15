@@ -13,10 +13,6 @@ module Goru
 
     # [public]
     #
-    attr_writer :observer
-
-    # [public]
-    #
     def <<(message)
       raise "closed" if @closed
       @messages << message
