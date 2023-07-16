@@ -1,6 +1,13 @@
 ---
 - version: v0.4.0
   changes:
+  - id: 20
+    type: add
+    summary: Add observer pattern to routines
+    link: https://github.com/bryanp/goru/pull/20
+    author:
+      username: bryanp
+      link: https://github.com/bryanp
   - id: 19
     type: add
     summary: Add ability to pause and resume a routine
