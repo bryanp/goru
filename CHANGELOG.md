@@ -2,6 +2,7 @@
 
 *unreleased*
 
+  * `add` [#22](https://github.com/bryanp/goru/pull/22) Add reactor as a reader to `Goru::Routine` ([bryanp](https://github.com/bryanp))
   * `add` [#21](https://github.com/bryanp/goru/pull/21) Improve statuses ([bryanp](https://github.com/bryanp))
   * `add` [#20](https://github.com/bryanp/goru/pull/20) Add observer pattern to routines ([bryanp](https://github.com/bryanp))
   * `add` [#19](https://github.com/bryanp/goru/pull/19) Add ability to pause and resume a routine ([bryanp](https://github.com/bryanp))
