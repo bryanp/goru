@@ -2,6 +2,7 @@
 
 *unreleased*
 
+  * `add` [#20](https://github.com/bryanp/goru/pull/20) Add observer pattern to routines ([bryanp](https://github.com/bryanp))
   * `add` [#19](https://github.com/bryanp/goru/pull/19) Add ability to pause and resume a routine ([bryanp](https://github.com/bryanp))
   * `chg` [#18](https://github.com/bryanp/goru/pull/18) Remove the unused `observer` writer from `Goru::Channel` ([bryanp](https://github.com/bryanp))
 
