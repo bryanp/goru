@@ -48,7 +48,7 @@ module Goru
 
     # [public]
     #
-    attr_reader :state, :status, :error
+    attr_reader :state, :status, :error, :reactor
 
     # [public]
     #
