@@ -20,6 +20,7 @@ module Goru
     def initialize(state = nil, &block)
       @state = state
       @block = block
+      @observers = Set.new
       set_status(:ready)
       @result, @error, @reactor = nil
       @debug = true
@@ -115,6 +116,8 @@ module Goru
     # [public]
     #
     private def status_changed
+      @observers.each(&:call)
+
       case @status
       when :errored, :finished
         @reactor&.routine_finished(self)
@@ -125,6 +128,18 @@ module Goru
     #
     def adopted
       # noop
+    end
+
+    # [public]
+    #
+    def add_observer(observer = nil, &block)
+      @observers << (block || observer.method(:routine_status_changed))
+    end
+
+    # [public]
+    #
+    def remove_observer(observer)
+      @observers.delete(observer)
     end
   end
 end
