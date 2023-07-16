@@ -1,6 +1,13 @@
 ---
 - version: v0.4.0
   changes:
+  - id: 19
+    type: add
+    summary: Add ability to pause and resume a routine
+    link: https://github.com/bryanp/goru/pull/19
+    author:
+      username: bryanp
+      link: https://github.com/bryanp
   - id: 18
     type: chg
     summary: Remove the unused `observer` writer from `Goru::Channel`
