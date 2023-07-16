@@ -1,5 +1,7 @@
 ---
 - version: v0.4.0
+  date: '2023-07-16'
+  link: https://github.com/bryanp/goru/releases/tag/v0.4.0
   changes:
   - id: 22
     type: add
