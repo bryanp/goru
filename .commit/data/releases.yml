@@ -1,6 +1,13 @@
 ---
 - version: v0.4.0
   changes:
+  - id: 21
+    type: add
+    summary: Improve statuses
+    link: https://github.com/bryanp/goru/pull/21
+    author:
+      username: bryanp
+      link: https://github.com/bryanp
   - id: 20
     type: add
     summary: Add observer pattern to routines
