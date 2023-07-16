@@ -13,6 +13,18 @@ module Goru
 
     # [public]
     #
+    STATUS_READY = :ready
+
+    # [public]
+    #
+    STATUS_FINISHED = :finished
+
+    # [public]
+    #
+    STATUS_IDLE = :idle
+
+    # [public]
+    #
     attr_reader :status
 
     # [public]
@@ -30,9 +42,9 @@ module Goru
 
     private def status_changed
       case @status
-      when :ready
+      when :STATUS_READY
         @routine.bridged
-      when :finished
+      when :STATUS_FINISHED
         @channel.remove_observer(self)
         @routine.unbridge
       end

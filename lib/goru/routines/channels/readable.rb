@@ -16,11 +16,11 @@ module Goru
 
         private def update_status
           status = if @channel.any?
-            :ready
+            Routine::STATUS_READY
           elsif @channel.closed?
-            :finished
+            Routine::STATUS_FINISHED
           else
-            :idle
+            Routine::STATUS_IDLE
           end
 
           set_status(status)

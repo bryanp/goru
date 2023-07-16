@@ -17,9 +17,9 @@ module Goru
 
       private def status_changed
         case @status
-        when :ready
+        when Routine::STATUS_READY
           @reactor&.wakeup
-        when :finished
+        when Routine::STATUS_FINISHED
           @channel.remove_observer(self)
         end
 

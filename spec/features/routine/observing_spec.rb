@@ -60,10 +60,10 @@ RSpec.describe "observing a routine" do
       scheduler.wait
 
       expect(statuses).to eq([
-        :ready,
-        :idle,
-        :ready,
-        :finished
+        Goru::Routine::STATUS_READY,
+        Goru::Routine::STATUS_IDLE,
+        Goru::Routine::STATUS_READY,
+        Goru::Routine::STATUS_FINISHED
       ])
     end
   end
