@@ -1,6 +1,6 @@
-## v0.4.0
+## [v0.4.0](https://github.com/bryanp/goru/releases/tag/v0.4.0)
 
-*unreleased*
+*released on 2023-07-16*
 
   * `add` [#22](https://github.com/bryanp/goru/pull/22) Add reactor as a reader to `Goru::Routine` ([bryanp](https://github.com/bryanp))
   * `add` [#21](https://github.com/bryanp/goru/pull/21) Improve statuses ([bryanp](https://github.com/bryanp))
