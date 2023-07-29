@@ -1,3 +1,9 @@
+## v0.4.1
+
+*unreleased*
+
+  * `fix` [#23](https://github.com/bryanp/goru/pull/23) Handle `IOError` in io routines ([bryanp](https://github.com/bryanp))
+
 ## [v0.4.0](https://github.com/bryanp/goru/releases/tag/v0.4.0)
 
 *released on 2023-07-16*
