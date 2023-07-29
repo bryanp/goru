@@ -1,4 +1,13 @@
 ---
+- version: v0.4.1
+  changes:
+  - id: 23
+    type: fix
+    summary: Handle `IOError` in io routines
+    link: https://github.com/bryanp/goru/pull/23
+    author:
+      username: bryanp
+      link: https://github.com/bryanp
 - version: v0.4.0
   date: '2023-07-16'
   link: https://github.com/bryanp/goru/releases/tag/v0.4.0
