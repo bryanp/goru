@@ -68,8 +68,9 @@ module Goru
       rescue Errno::EAGAIN
         wait
       rescue Errno::ECONNRESET, Errno::EPIPE, EOFError
-        finished
-        nil
+        handle_io_unavailable
+      rescue IOError
+        handle_io_unavailable
       end
 
       def wait
@@ -86,8 +87,9 @@ module Goru
       rescue Errno::EAGAIN
         wait
       rescue Errno::ECONNRESET, Errno::EPIPE, EOFError
-        finished
-        nil
+        handle_io_unavailable
+      rescue IOError
+        handle_io_unavailable
       end
 
       # [public]
@@ -97,6 +99,12 @@ module Goru
       rescue Errno::EAGAIN
         wait
       rescue Errno::ECONNRESET, Errno::EPIPE, EOFError
+        handle_io_unavailable
+      rescue IOError
+        handle_io_unavailable
+      end
+
+      private def handle_io_unavailable
         finished
         nil
       end
