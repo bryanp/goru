@@ -1,4 +1,13 @@
 ---
+- version: v0.4.2
+  changes:
+  - id: 25
+    type: fix
+    summary: Handle IOError in the scheduler and reactor
+    link: https://github.com/bryanp/goru/pull/25
+    author:
+      username: bryanp
+      link: https://github.com/bryanp
 - version: v0.4.1
   date: '2023-07-29'
   link: https://github.com/bryanp/goru/releases/tag/v0.4.1
