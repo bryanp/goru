@@ -161,6 +161,13 @@ module Goru
         @reactor.wakeup
       end
 
+      # [public]
+      #
+      def finished(...)
+        @io.close
+        super
+      end
+
       private def status_changed
         case @status
         when Routine::STATUS_FINISHED
