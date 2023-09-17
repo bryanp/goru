@@ -108,6 +108,7 @@ module Goru
       end
 
       @timers.fire
+    rescue IOError
     end
 
     private def wait(timeout: nil)
