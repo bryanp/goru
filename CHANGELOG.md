@@ -2,6 +2,7 @@
 
 *unreleased*
 
+  * `fix` [#24](https://github.com/bryanp/goru/pull/24) Close the io object when the routine is finished ([bryanp](https://github.com/bryanp))
   * `fix` [#25](https://github.com/bryanp/goru/pull/25) Handle IOError in the scheduler and reactor ([bryanp](https://github.com/bryanp))
 
 ## [v0.4.1](https://github.com/bryanp/goru/releases/tag/v0.4.1)
