@@ -1,6 +1,13 @@
 ---
 - version: v0.4.2
   changes:
+  - id: 24
+    type: fix
+    summary: Close the io object when the routine is finished
+    link: https://github.com/bryanp/goru/pull/24
+    author:
+      username: bryanp
+      link: https://github.com/bryanp
   - id: 25
     type: fix
     summary: Handle IOError in the scheduler and reactor
