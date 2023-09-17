@@ -1,6 +1,6 @@
-## v0.4.2
+## [v0.4.2](https://github.com/bryanp/goru/releases/tag/v0.4.2)
 
-*unreleased*
+*released on 2023-09-17*
 
   * `fix` [#24](https://github.com/bryanp/goru/pull/24) Close the io object when the routine is finished ([bryanp](https://github.com/bryanp))
   * `fix` [#25](https://github.com/bryanp/goru/pull/25) Handle IOError in the scheduler and reactor ([bryanp](https://github.com/bryanp))
