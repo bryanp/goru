@@ -50,6 +50,7 @@ module Goru
         Thread.new {
           Thread.handle_interrupt(Interrupt => :never) do
             reactor.run
+          rescue IOError
           end
         }
       }
