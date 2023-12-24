@@ -1,3 +1,9 @@
+## v0.5.0
+
+*unreleased*
+
+  * `chg` [#26](https://github.com/bryanp/goru/pull/26) Bump core dependencies ([bryanp](https://github.com/bryanp))
+
 ## [v0.4.2](https://github.com/bryanp/goru/releases/tag/v0.4.2)
 
 *released on 2023-09-17*
