@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Goru
-  VERSION = "0.4.2"
+  VERSION = "0.5.0"
 
   # [public]
   #
