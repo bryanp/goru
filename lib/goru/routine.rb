@@ -1,12 +1,12 @@
 # frozen_string_literal: true
 
-require "is/handler"
+require "core/handler"
 
 module Goru
   # [public]
   #
   class Routine
-    include Is::Handler
+    include Core::Handler
 
     handle(StandardError) do |event:|
       if @debug
