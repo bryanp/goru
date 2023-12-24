@@ -2,7 +2,7 @@
 
 require "etc"
 require "nio"
-require "is/global"
+require "core/global"
 
 require_relative "channel"
 require_relative "reactor"
@@ -16,7 +16,7 @@ module Goru
   # [public]
   #
   class Scheduler
-    include Is::Global
+    include Core::Global
 
     class << self
       # Prevent issues when including `Goru` at the toplevel.
