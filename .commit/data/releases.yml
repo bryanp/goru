@@ -1,4 +1,13 @@
 ---
+- version: v0.5.0
+  changes:
+  - id: 26
+    type: chg
+    summary: Bump core dependencies
+    link: https://github.com/bryanp/goru/pull/26
+    author:
+      username: bryanp
+      link: https://github.com/bryanp
 - version: v0.4.2
   date: '2023-09-17'
   link: https://github.com/bryanp/goru/releases/tag/v0.4.2
